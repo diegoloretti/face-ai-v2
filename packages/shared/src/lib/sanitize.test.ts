@@ -22,6 +22,14 @@ describe('sanitizeLocal', () => {
     expect(sanitizeLocal('loja centro')).toBe('lojacentro')
   })
 
+  it('retorna "desconhecido" pra whitespace-only', () => {
+    expect(sanitizeLocal('   ')).toBe('desconhecido')
+  })
+
+  it('retorna "desconhecido" quando todos os caracteres são removidos', () => {
+    expect(sanitizeLocal('!@#$ %^&')).toBe('desconhecido')
+  })
+
   it('trunca em 50 caracteres antes de filtrar', () => {
     const input = 'a'.repeat(60) + '!!!!'
     const result = sanitizeLocal(input)
