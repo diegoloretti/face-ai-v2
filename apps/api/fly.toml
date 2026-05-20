@@ -1,0 +1,20 @@
+# Codex round 1 - Important 2: 256MB foi otimista demais pra tfjs-node + Human warmup
+# eager. 512MB é o piso seguro; ajustar pra 1024 se Task 21 Step 6 mediu pico > 450MB.
+app = "face-ai-v2"
+primary_region = "gru"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ["app"]
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 512
