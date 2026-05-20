@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { decidir, LIVENESS_THRESHOLD, ANTISPOOF_THRESHOLD } from './decisionEngine.js'
+import { decidir, LIVENESS_THRESHOLD, ANTISPOOF_THRESHOLD, detectTamper } from './decisionEngine.js'
 
 function features(overrides: Partial<Parameters<typeof decidir>[0]> = {}) {
   return {
@@ -65,5 +65,38 @@ describe('decidir', () => {
   it('limite inferior faixa 22+ é 22 (inclusivo)', () => {
     expect(decidir(features({ age: 21.999 })).decisao).toBe('requer_declaracao')
     expect(decidir(features({ age: 22 })).decisao).toBe('aprovado')
+  })
+})
+
+describe('detectTamper', () => {
+  const base = {
+    age: 30,
+    antiSpoofScore: 0.9,
+    livenessScore: 0.9,
+    faceDetectionScore: 0.95,
+  }
+
+  it('sem delta retorna false', () => {
+    expect(detectTamper(base, base)).toBe(false)
+  })
+
+  it('age delta <= 10 não dispara', () => {
+    expect(detectTamper({ ...base, age: 35 }, { ...base, age: 30 })).toBe(false)
+  })
+
+  it('age delta > 10 dispara', () => {
+    expect(detectTamper({ ...base, age: 35 }, { ...base, age: 15 })).toBe(true)
+  })
+
+  it('liveness delta > 0.3 dispara', () => {
+    expect(
+      detectTamper({ ...base, livenessScore: 0.95 }, { ...base, livenessScore: 0.5 }),
+    ).toBe(true)
+  })
+
+  it('liveness delta <= 0.3 não dispara', () => {
+    expect(
+      detectTamper({ ...base, livenessScore: 0.9 }, { ...base, livenessScore: 0.7 }),
+    ).toBe(false)
   })
 })

@@ -34,3 +34,12 @@ export function decidir(features: ServerFeatures): Decision {
   }
   return { decisao: 'recusado', faixa_etaria: faixa, motivo: 'faixa_etaria_minor' }
 }
+
+export const TAMPER_AGE_DELTA = 10
+export const TAMPER_LIVENESS_DELTA = 0.3
+
+export function detectTamper(client: ServerFeatures, server: ServerFeatures): boolean {
+  const ageDelta = Math.abs(client.age - server.age)
+  const livenessDelta = Math.abs(client.livenessScore - server.livenessScore)
+  return ageDelta > TAMPER_AGE_DELTA || livenessDelta > TAMPER_LIVENESS_DELTA
+}
