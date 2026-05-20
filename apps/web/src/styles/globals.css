@@ -1,0 +1,19 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-bg: #0a0a0f;
+  --color-surface: #14141f;
+  --color-border: #1e1e2e;
+  --color-text: #e8e8f0;
+  --color-muted: #555570;
+  --color-accent-cyan: #00ffcc;
+  --color-accent-pink: #ff3cac;
+}
+
+html, body {
+  background: var(--color-bg);
+  color: var(--color-text);
+  margin: 0;
+  font-family: 'Space Mono', monospace;
+  min-height: 100vh;
+}
