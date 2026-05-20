@@ -1,4 +1,5 @@
 import type { Hono } from 'hono'
+import { errors } from 'jose'
 import type { JwtService } from '../services/jwt.js'
 
 export function mountVerifyJwt(app: Hono, jwt: JwtService): void {
@@ -11,8 +12,7 @@ export function mountVerifyJwt(app: Hono, jwt: JwtService): void {
       const payload = await jwt.verify(token)
       return c.json({ valid: true, expired: false, payload })
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'invalid'
-      const expired = /exp.*claim/.test(message)
+      const expired = err instanceof errors.JWTExpired
       return c.json({ valid: false, expired, payload: null })
     }
   })

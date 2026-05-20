@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll } from 'vitest'
 import { Hono } from 'hono'
-import { generateKeyPair, exportPKCS8, exportSPKI } from 'jose'
+import { generateKeyPair, exportPKCS8, exportSPKI, SignJWT } from 'jose'
 import { createJwtService, type JwtService } from '../services/jwt.js'
 import { mountVerifyJwt } from './verifyJwt.js'
 
@@ -53,5 +53,27 @@ describe('GET /verify-jwt', () => {
     mountVerifyJwt(app, svc)
     const res = await app.request('/verify-jwt')
     expect(res.status).toBe(400)
+  })
+
+  it('retorna valid:false + expired:true para JWT expirado', async () => {
+    const kp = await generateKeyPair('ES256', { extractable: true })
+    const expiredToken = await new SignJWT({ ...baseClaims, jti: 'expired-jti-test' })
+      .setProtectedHeader({ alg: 'ES256', kid: 'k1' })
+      .setIssuedAt(Math.floor(Date.now() / 1000) - 8 * 24 * 3600)
+      .setExpirationTime(Math.floor(Date.now() / 1000) - 1)
+      .sign(kp.privateKey)
+    const svcExpired = await createJwtService({
+      privatePem: await exportPKCS8(kp.privateKey),
+      publicPem: await exportSPKI(kp.publicKey),
+      kid: 'k1',
+    })
+    const appExpired = new Hono()
+    mountVerifyJwt(appExpired, svcExpired)
+    const res = await appExpired.request(`/verify-jwt?token=${encodeURIComponent(expiredToken)}`)
+    expect(res.status).toBe(200)
+    const body = (await res.json()) as { valid: boolean; expired: boolean; payload: unknown }
+    expect(body.valid).toBe(false)
+    expect(body.expired).toBe(true)
+    expect(body.payload).toBeNull()
   })
 })
