@@ -1,8 +1,6 @@
 import { chromium } from 'playwright'
-import { fileURLToPath } from 'node:url'
-import { dirname, join } from 'node:path'
+import { join } from 'node:path'
 
-const __dirname = dirname(fileURLToPath(import.meta.url))
 const SCREENSHOT_DIR = process.env.SCREENSHOT_DIR ?? join(
   process.env.USERPROFILE ?? process.env.HOME ?? '',
   '.claude/playwright/faceai-v2'
