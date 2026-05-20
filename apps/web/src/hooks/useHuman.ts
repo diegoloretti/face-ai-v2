@@ -24,8 +24,8 @@ const humanConfig: Partial<Config> = {
   gesture: { enabled: false }
 }
 
-// Singleton lazy: garante que load+warmup so acontecem uma vez,
-// mesmo que varios componentes chamem useHuman() simultaneamente.
+// Singleton lazy: garante que load+warmup só acontecem uma vez,
+// mesmo que vários componentes chamem useHuman() simultaneamente.
 function getHumanInstance(): Promise<Human> {
   if (singletonPromise) return singletonPromise
   singletonPromise = (async () => {
