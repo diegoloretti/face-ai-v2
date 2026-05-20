@@ -1,0 +1,39 @@
+# Build context é face-ai-v2/. Esse .dockerignore protege CONTEXT root.
+**/node_modules
+**/dist
+**/coverage
+**/.turbo
+**/*.log
+
+# segredos - NUNCA entram na imagem
+**/.env
+**/.env.*
+!apps/web/.env
+
+# testes não rodam dentro do container
+**/*.test.ts
+**/*.test.js
+**/test/fixtures
+**/__snapshots__
+
+# artefatos copiados que o build refaz dentro
+apps/api/models
+
+# editor/ide
+.vscode
+.idea
+.DS_Store
+
+# git
+.git
+.gitignore
+
+# docs + scripts auxiliares fora do escopo runtime
+docs
+README.md
+playwright-report
+playwright/.cache
+
+# frontend não vai pra essa imagem (vai pra Vercel)
+apps/web/dist
+apps/web/.vite
