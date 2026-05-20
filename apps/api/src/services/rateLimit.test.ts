@@ -3,9 +3,7 @@ import { checkRateLimit, LIMITS, WINDOW_MS } from './rateLimit.js'
 
 function makeClient(rpcResult: { data: unknown; error: unknown }) {
   return {
-    rpc: vi.fn().mockReturnValue({
-      returns: vi.fn().mockResolvedValue(rpcResult),
-    }),
+    rpc: vi.fn().mockResolvedValue(rpcResult),
   }
 }
 

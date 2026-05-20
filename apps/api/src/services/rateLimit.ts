@@ -19,7 +19,6 @@ export async function checkRateLimit(
   const bucketKey = `${ipHash}:${endpoint}`
   const rpcCall = client
     .rpc('increment_rate_limit', { p_bucket_key: bucketKey, p_window_ms: WINDOW_MS })
-    .returns<RateLimitRow[]>()
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data, error } = (await rpcCall) as any as { data: RateLimitRow[] | null; error: unknown }
 
