@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "test": "echo 'tests added later'",
     "typecheck": "tsc --noEmit",
-    "lint": "echo 'lint configured in Task 7'"
+    "lint": "eslint src --max-warnings=0"
   },
   "dependencies": {
     "@face-ai/shared": "workspace:*",
