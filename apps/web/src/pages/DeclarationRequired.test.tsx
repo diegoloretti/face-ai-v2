@@ -32,4 +32,21 @@ describe('DeclarationRequired', () => {
     await userEvent.click(screen.getByRole('button', { name: /não declarar/i }))
     expect(onRefuse).toHaveBeenCalledTimes(1)
   })
+
+  it('botão Confirmar mostra "Confirmando..." e fica disabled quando submitting', async () => {
+    render(<DeclarationRequired onConfirm={() => {}} onRefuse={() => {}} submitting />)
+    await userEvent.click(screen.getByRole('checkbox'))
+    const confirm = screen.getByRole('button', { name: /confirmando/i })
+    expect(confirm).toBeDisabled()
+  })
+
+  it('não chama onConfirm em cliques repetidos enquanto submitting', async () => {
+    const onConfirm = vi.fn()
+    render(<DeclarationRequired onConfirm={onConfirm} onRefuse={() => {}} submitting />)
+    await userEvent.click(screen.getByRole('checkbox'))
+    const confirm = screen.getByRole('button', { name: /confirmando/i })
+    await userEvent.click(confirm)
+    await userEvent.click(confirm)
+    expect(onConfirm).not.toHaveBeenCalled()
+  })
 })

@@ -1,5 +1,6 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { BlinkChallenge } from './BlinkChallenge'
 
 describe('BlinkChallenge', () => {
@@ -26,5 +27,22 @@ describe('BlinkChallenge', () => {
   it('instrução em PT-BR pede pra piscar duas vezes', () => {
     render(<BlinkChallenge count={0} required={2} status="waiting" />)
     expect(screen.getByText(/pisque/i)).toBeInTheDocument()
+  })
+
+  it('mostra botão "Tentar de novo" quando status timeout e onRetry fornecido', () => {
+    render(<BlinkChallenge count={0} required={2} status="timeout" onRetry={() => {}} />)
+    expect(screen.getByRole('button', { name: /tentar de novo/i })).toBeInTheDocument()
+  })
+
+  it('não mostra botão "Tentar de novo" quando status timeout mas onRetry ausente', () => {
+    render(<BlinkChallenge count={0} required={2} status="timeout" />)
+    expect(screen.queryByRole('button', { name: /tentar de novo/i })).not.toBeInTheDocument()
+  })
+
+  it('chama onRetry quando botão "Tentar de novo" clicado', async () => {
+    const onRetry = vi.fn()
+    render(<BlinkChallenge count={0} required={2} status="timeout" onRetry={onRetry} />)
+    await userEvent.click(screen.getByRole('button', { name: /tentar de novo/i }))
+    expect(onRetry).toHaveBeenCalledTimes(1)
   })
 })

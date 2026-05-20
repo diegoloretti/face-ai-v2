@@ -33,7 +33,10 @@ function getHumanInstance(): Promise<Human> {
     await instance.load()
     await instance.warmup()
     return instance
-  })()
+  })().catch((err) => {
+    singletonPromise = null
+    throw err
+  })
   return singletonPromise
 }
 

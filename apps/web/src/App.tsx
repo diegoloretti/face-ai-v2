@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useSession } from './hooks/useSession'
 import { Consent } from './pages/Consent'
 import { PrivacyPolicy } from './pages/PrivacyPolicy'
@@ -13,6 +14,7 @@ import type { VerificationJson, VerifyResponse } from '@face-ai/shared'
 
 export function App() {
   const { state, dispatch } = useSession()
+  const [confirmingDeclaration, setConfirmingDeclaration] = useState(false)
 
   function handleInitialRefusal() {
     const payload: VerificationJson = {
@@ -32,6 +34,8 @@ export function App() {
 
   async function handleDeclarationConfirmed() {
     if (!state.verifyResponse) return
+    if (confirmingDeclaration) return
+    setConfirmingDeclaration(true)
     try {
       const decl = await verifyDeclaration(state.sessionId, state.verifyResponse.jwt)
       const payload: VerificationJson = {
@@ -52,6 +56,7 @@ export function App() {
       dispatch({ type: 'DECLARATION_CONFIRMED', response: decl })
     } catch (err) {
       console.error('verify_declaration_failed', err)
+      setConfirmingDeclaration(false)
       dispatch({ type: 'DECLARATION_REFUSED' })
     }
   }
@@ -103,6 +108,7 @@ export function App() {
         <DeclarationRequired
           onConfirm={handleDeclarationConfirmed}
           onRefuse={() => dispatch({ type: 'DECLARATION_REFUSED' })}
+          submitting={confirmingDeclaration}
         />
       )
     case 'result': {

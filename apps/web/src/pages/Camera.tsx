@@ -158,10 +158,22 @@ export function Camera({
     )
   }
 
+  function handleBlinkRetry() {
+    detectorRef.current = createBlinkDetector()
+    setBlinkCount(0)
+    setStatusMsg('Aguardando câmera...')
+    setBlinkStatus('waiting')
+  }
+
   return (
     <main className="flex min-h-screen flex-col items-center justify-center gap-6 p-8">
       <CameraView stream={stream} videoRef={videoRef} />
-      <BlinkChallenge count={blinkCount} required={REQUIRED_BLINKS} status={blinkStatus} />
+      <BlinkChallenge
+        count={blinkCount}
+        required={REQUIRED_BLINKS}
+        status={blinkStatus}
+        onRetry={blinkStatus === 'timeout' ? handleBlinkRetry : undefined}
+      />
       <StatusBadge tone={blinkStatus === 'timeout' ? 'error' : 'info'}>{statusMsg}</StatusBadge>
       {blinkStatus === 'complete' && (
         <button

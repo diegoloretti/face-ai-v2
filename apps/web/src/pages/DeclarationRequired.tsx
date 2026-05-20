@@ -3,9 +3,11 @@ import { useState } from 'react'
 export function DeclarationRequired({
   onConfirm,
   onRefuse,
+  submitting = false,
 }: {
   onConfirm: () => void
   onRefuse: () => void
+  submitting?: boolean
 }) {
   const [checked, setChecked] = useState(false)
   return (
@@ -30,11 +32,11 @@ export function DeclarationRequired({
       <div className="flex flex-col gap-3 sm:flex-row">
         <button
           type="button"
-          disabled={!checked}
+          disabled={!checked || submitting}
           onClick={onConfirm}
           className="border border-accent-cyan bg-transparent px-8 py-3 font-mono uppercase tracking-wider text-accent-cyan transition hover:bg-accent-cyan hover:text-bg disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-accent-cyan"
         >
-          Confirmar declaração
+          {submitting ? 'Confirmando...' : 'Confirmar declaração'}
         </button>
         <button
           type="button"

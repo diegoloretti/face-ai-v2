@@ -4,15 +4,26 @@ export function BlinkChallenge({
   count,
   required,
   status,
+  onRetry,
 }: {
   count: number
   required: number
   status: BlinkChallengeStatus
+  onRetry?: () => void
 }) {
   if (status === 'timeout') {
     return (
-      <div className="text-center font-mono text-accent-pink">
-        Tempo esgotado. Posicione-se novamente.
+      <div className="flex flex-col items-center gap-3 text-center font-mono text-accent-pink">
+        <span>Tempo esgotado. Posicione-se novamente.</span>
+        {onRetry && (
+          <button
+            type="button"
+            onClick={onRetry}
+            className="border border-accent-pink bg-transparent px-6 py-2 font-mono uppercase tracking-wider text-accent-pink transition hover:bg-accent-pink hover:text-bg"
+          >
+            Tentar de novo
+          </button>
+        )}
       </div>
     )
   }
