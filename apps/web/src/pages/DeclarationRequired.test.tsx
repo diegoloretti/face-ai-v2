@@ -7,7 +7,7 @@ describe('DeclarationRequired', () => {
   it('renderiza explicação da faixa 16-21 em PT-BR', () => {
     render(<DeclarationRequired onConfirm={() => {}} onRefuse={() => {}} />)
     expect(screen.getByText(/16.*21/)).toBeInTheDocument()
-    expect(screen.getByText(/declarar/i)).toBeInTheDocument()
+    expect(screen.getByText(/precisa declarar/i)).toBeInTheDocument()
   })
 
   it('botão Confirmar começa desabilitado até checkbox marcada', async () => {
