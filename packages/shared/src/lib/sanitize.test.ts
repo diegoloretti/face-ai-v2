@@ -10,7 +10,7 @@ describe('sanitizeLocal', () => {
     expect(sanitizeLocal('')).toBe('desconhecido')
   })
 
-  it('preserva alfanumericos, hifen e underscore', () => {
+  it('preserva alfanuméricos, hífen e underscore', () => {
     expect(sanitizeLocal('loja_centro-01')).toBe('loja_centro-01')
   })
 
@@ -18,7 +18,7 @@ describe('sanitizeLocal', () => {
     expect(sanitizeLocal('loja!@#$%^&*()centro')).toBe('lojacentro')
   })
 
-  it('remove espacos', () => {
+  it('remove espaços', () => {
     expect(sanitizeLocal('loja centro')).toBe('lojacentro')
   })
 
@@ -29,7 +29,7 @@ describe('sanitizeLocal', () => {
     expect(result.length).toBe(50)
   })
 
-  it('lida com unicode removendo (nao e alfanumerico ASCII)', () => {
+  it('lida com unicode removendo (não é alfanumérico ASCII)', () => {
     expect(sanitizeLocal('loja-são-paulo')).toBe('loja-so-paulo')
   })
 })
