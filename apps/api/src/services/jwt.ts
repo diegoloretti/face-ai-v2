@@ -19,7 +19,21 @@ export type JwtService = {
 }
 
 function normalizePem(raw: string): string {
-  return raw.includes('\\n') ? raw.replace(/\\n/g, '\n') : raw
+  let s = raw.trim()
+  // Strip outer quotes preserved by env-file/secret loaders
+  if ((s.startsWith('"') && s.endsWith('"')) || (s.startsWith("'") && s.endsWith("'"))) {
+    s = s.slice(1, -1)
+  }
+  // If it doesn't look like a PEM, assume base64-encoded PEM and decode.
+  // (flyctl secrets import mangles literal `\n` in env-file values, so base64 is the safe channel.)
+  if (!s.includes('-----BEGIN')) {
+    s = Buffer.from(s, 'base64').toString('utf8').trim()
+  }
+  // Convert literal `\n` escapes to real newlines (jose v5 requires real newlines in PEM)
+  if (s.includes('\\n')) {
+    s = s.replace(/\\n/g, '\n')
+  }
+  return s
 }
 
 export async function createJwtService(opts: {

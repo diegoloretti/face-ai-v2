@@ -9,8 +9,10 @@ const here = dirname(fileURLToPath(import.meta.url))
 const fixturePath = resolve(here, '../../test/fixtures/face-real.jpg')
 
 const hasFixture = existsSync(fixturePath)
+// tfjs-node prebuilt binding não suporta Windows; integração roda em Linux/Docker/CI.
+const canRunNative = process.platform !== 'win32'
 
-describe.runIf(hasFixture)('humanRunner integration', () => {
+describe.runIf(hasFixture && canRunNative)('humanRunner integration', () => {
   let buffer: Buffer
 
   beforeAll(async () => {
