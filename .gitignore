@@ -34,3 +34,6 @@ coverage/
 # Testing
 playwright-report/
 test-results/
+
+# shared package emite dist via prepare/build - artefato, não vai pro repo
+packages/shared/dist/
