@@ -11,7 +11,7 @@ export function App() {
         Local: <span className="text-accent-pink">{local}</span>
       </p>
       <p className="text-xs text-muted">
-        scaffold OK - proxima fase: telas, camera, Human
+        scaffold OK - próxima fase: telas, câmera, Human
       </p>
     </main>
   )
