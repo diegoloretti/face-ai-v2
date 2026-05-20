@@ -1,0 +1,26 @@
+{
+  "name": "face-ai-v2",
+  "private": true,
+  "version": "2.0.0",
+  "type": "module",
+  "packageManager": "pnpm@9.15.4",
+  "engines": {
+    "node": ">=22.0.0",
+    "pnpm": ">=9.0.0 <10.0.0"
+  },
+  "scripts": {
+    "dev:web": "pnpm --filter @face-ai/web dev",
+    "dev:api": "pnpm --filter @face-ai/api dev",
+    "build": "pnpm -r build",
+    "test": "pnpm -r test",
+    "lint": "pnpm -r lint",
+    "typecheck": "pnpm -r typecheck",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "download-models": "node scripts/download-models.mjs"
+  },
+  "devDependencies": {
+    "prettier": "^3.4.0",
+    "typescript": "^5.5.0"
+  }
+}
