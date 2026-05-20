@@ -2,8 +2,8 @@ import { z } from 'zod'
 
 export const VerificationJsonSchema = z.object({
   schema_version: z.literal('2.0'),
-  session_id: z.string().uuid(),
-  timestamp: z.string().datetime(),
+  session_id: z.uuid(),
+  timestamp: z.iso.datetime(),
   local: z.string().max(50),
   decisao: z.enum([
     'aprovado',
@@ -17,7 +17,7 @@ export const VerificationJsonSchema = z.object({
   declaracao: z
     .object({
       declarou: z.boolean(),
-      timestamp_declaracao: z.string().datetime()
+      timestamp_declaracao: z.iso.datetime()
     })
     .nullable(),
   jwt: z.string().nullable()
