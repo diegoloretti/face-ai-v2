@@ -1,7 +1,43 @@
 import { Hono } from 'hono'
+import { buildCors } from './lib/cors.js'
+import { mountVerify } from './routes/verify.js'
+import { mountVerifyDeclaration } from './routes/verifyDeclaration.js'
+import { mountVerifyJwt } from './routes/verifyJwt.js'
+import { mountWellKnownJwks } from './routes/wellKnownJwks.js'
+import type { JwtService } from './services/jwt.js'
+import type { Db } from './services/db.js'
+import type { ServerFeatures } from './services/decisionEngine.js'
 
-export const app = new Hono()
+export type AppDeps = {
+  allowedOrigins: string[]
+  jwt: JwtService
+  db: Db
+  extractServerFeatures: (buf: Buffer) => Promise<ServerFeatures>
+  checkRateLimit: (ipHash: string) => Promise<{ ok: boolean; retryAfter: number }>
+}
 
-app.get('/', (c) => {
-  return c.json({ message: 'face-ai api v2', status: 'ok' })
-})
+export async function createApp(deps: AppDeps): Promise<Hono> {
+  const app = new Hono()
+
+  app.use('*', buildCors(deps.allowedOrigins))
+
+  app.get('/', (c) =>
+    c.json({ message: 'face-ai api v2', status: 'ok' }),
+  )
+
+  mountWellKnownJwks(app, deps.jwt)
+  mountVerifyJwt(app, deps.jwt)
+  mountVerify(app, {
+    jwt: deps.jwt,
+    db: deps.db,
+    extractServerFeatures: deps.extractServerFeatures,
+    checkRateLimit: deps.checkRateLimit,
+  })
+  mountVerifyDeclaration(app, {
+    jwt: deps.jwt,
+    db: deps.db,
+    checkRateLimit: deps.checkRateLimit,
+  })
+
+  return app
+}
