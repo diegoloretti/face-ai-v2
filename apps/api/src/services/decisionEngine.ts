@@ -13,7 +13,7 @@ export type ServerFeatures = {
 export type Decision = {
   decisao: 'aprovado' | 'recusado' | 'requer_declaracao'
   faixa_etaria: AgeTier
-  motivo: string | null
+  motivo: 'liveness_fail' | 'antispoof_fail' | 'faixa_etaria_minor' | null
 }
 
 export function decidir(features: ServerFeatures): Decision {
