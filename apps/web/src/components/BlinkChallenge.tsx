@@ -3,7 +3,7 @@ export type BlinkChallengeStatus = 'waiting' | 'complete' | 'timeout'
 export function BlinkChallenge({
   count,
   required,
-  status
+  status,
 }: {
   count: number
   required: number

@@ -5,14 +5,14 @@ import { DownloadButton } from '../components/DownloadButton'
 const MOTIVO_PT: Record<string, string> = {
   faixa_etaria_minor: 'Faixa etária estimada abaixo do permitido.',
   liveness_fail: 'Não conseguimos confirmar sua presença.',
-  antispoof_fail: 'Detectamos uso de foto ou tela.'
+  antispoof_fail: 'Detectamos uso de foto ou tela.',
 }
 
 export function Result({
   response,
   declarationConfirmed,
   onRetry,
-  onDownload
+  onDownload,
 }: {
   response: VerifyResponse
   declarationConfirmed: boolean
@@ -24,7 +24,7 @@ export function Result({
       ? 'aprovado_com_declaracao'
       : response.decisao
 
-  const motivoPt = response.motivo ? MOTIVO_PT[response.motivo] ?? response.motivo : null
+  const motivoPt = response.motivo ? (MOTIVO_PT[response.motivo] ?? response.motivo) : null
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center gap-6 p-8 text-center">
@@ -32,9 +32,7 @@ export function Result({
       <p className="font-mono text-xs text-muted">
         Faixa etária: <span className="text-text">{response.faixa_etaria}</span>
       </p>
-      {motivoPt && (
-        <p className="max-w-md font-mono text-sm text-accent-pink">{motivoPt}</p>
-      )}
+      {motivoPt && <p className="max-w-md font-mono text-sm text-accent-pink">{motivoPt}</p>}
       <div className="flex flex-col gap-3 sm:flex-row">
         <DownloadButton onClick={onDownload} />
         <button

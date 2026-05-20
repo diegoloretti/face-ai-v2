@@ -4,7 +4,7 @@ export function CameraView({
   stream,
   videoRef,
   width = 640,
-  height = 480
+  height = 480,
 }: {
   stream: MediaStream | null
   videoRef: RefObject<HTMLVideoElement | null>

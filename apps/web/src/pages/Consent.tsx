@@ -1,7 +1,7 @@
 export function Consent({
   onAccept,
   onReject,
-  onViewPrivacy
+  onViewPrivacy,
 }: {
   onAccept: () => void
   onReject: () => void
@@ -9,20 +9,14 @@ export function Consent({
 }) {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center gap-8 p-8">
-      <h1 className="font-display text-5xl tracking-tight text-accent-cyan">
-        FACE.AI
-      </h1>
+      <h1 className="font-display text-5xl tracking-tight text-accent-cyan">FACE.AI</h1>
       <p className="max-w-md text-center font-mono text-text">
         Verificação de idade por inteligência artificial.
       </p>
       <p className="max-w-md text-center font-mono text-sm text-muted">
-        Sua câmera será usada apenas para estimar sua faixa etária. Nenhuma foto
-        é armazenada. Você pode recusar ou ler nossa{' '}
-        <button
-          type="button"
-          onClick={onViewPrivacy}
-          className="underline hover:text-accent-cyan"
-        >
+        Sua câmera será usada apenas para estimar sua faixa etária. Nenhuma foto é armazenada. Você
+        pode recusar ou ler nossa{' '}
+        <button type="button" onClick={onViewPrivacy} className="underline hover:text-accent-cyan">
           política de privacidade
         </button>{' '}
         antes de continuar.

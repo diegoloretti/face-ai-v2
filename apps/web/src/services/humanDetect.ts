@@ -40,7 +40,7 @@ export function buildEyeEARPoints(upper: Point[], lower: Point[]): Point[] | nul
     upper[Math.floor(u * 0.7)],
     upper[u - 1],
     lower[Math.floor(l * 0.7)],
-    lower[Math.floor(l * 0.3)]
+    lower[Math.floor(l * 0.3)],
   ]
 }
 
@@ -74,7 +74,7 @@ export function extractClientFeatures(result: HumanResultMinimal): ClientFeature
     age: f.age,
     antiSpoofScore: f.real ?? 0,
     livenessScore: f.live ?? 0,
-    faceDetectionScore: f.score ?? 0
+    faceDetectionScore: f.score ?? 0,
   }
 }
 
@@ -93,10 +93,8 @@ export function createBlinkDetector(): BlinkDetector {
   let lastBlinkTimestamp = -Infinity
 
   function processFrame(leftEAR: number, rightEAR: number, timestamp: number) {
-    const bothClosed =
-      leftEAR < EAR_CLOSED_THRESHOLD && rightEAR < EAR_CLOSED_THRESHOLD
-    const bothOpen =
-      leftEAR >= EAR_CLOSED_THRESHOLD && rightEAR >= EAR_CLOSED_THRESHOLD
+    const bothClosed = leftEAR < EAR_CLOSED_THRESHOLD && rightEAR < EAR_CLOSED_THRESHOLD
+    const bothOpen = leftEAR >= EAR_CLOSED_THRESHOLD && rightEAR >= EAR_CLOSED_THRESHOLD
 
     if (eyeState === 'open' && bothClosed) {
       eyeState = 'closed'
@@ -119,6 +117,6 @@ export function createBlinkDetector(): BlinkDetector {
       count = 0
       eyeState = 'open'
       lastBlinkTimestamp = -Infinity
-    }
+    },
   }
 }

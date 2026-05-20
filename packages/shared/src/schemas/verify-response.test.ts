@@ -8,7 +8,7 @@ describe('VerifyResponseSchema', () => {
       faixa_etaria: '22+',
       jwt: 'mock-jwt',
       motivo: null,
-      tamper_detected: false
+      tamper_detected: false,
     }
     expect(() => VerifyResponseSchema.parse(payload)).not.toThrow()
   })
@@ -19,7 +19,7 @@ describe('VerifyResponseSchema', () => {
       faixa_etaria: '22+',
       jwt: 'mock-jwt',
       motivo: null,
-      tamper_detected: false
+      tamper_detected: false,
     }
     expect(() => VerifyResponseSchema.parse(payload)).toThrow()
   })
@@ -30,7 +30,7 @@ describe('VerifyResponseSchema', () => {
       faixa_etaria: '22+',
       jwt: '',
       motivo: null,
-      tamper_detected: false
+      tamper_detected: false,
     }
     expect(() => VerifyResponseSchema.parse(payload)).toThrow()
   })
@@ -41,7 +41,7 @@ describe('VerifyResponseSchema', () => {
       faixa_etaria: '<13',
       jwt: 'mock-jwt',
       motivo: 'faixa_etaria_minor',
-      tamper_detected: false
+      tamper_detected: false,
     }
     expect(() => VerifyResponseSchema.parse(payload)).not.toThrow()
   })

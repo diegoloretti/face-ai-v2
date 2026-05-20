@@ -3,7 +3,7 @@ import {
   computeEAR,
   extractClientFeatures,
   createBlinkDetector,
-  buildEyeEARPoints
+  buildEyeEARPoints,
 } from './humanDetect'
 
 describe('computeEAR', () => {
@@ -14,7 +14,7 @@ describe('computeEAR', () => {
       [4, -1],
       [6, 0],
       [4, 1],
-      [2, 1]
+      [2, 1],
     ] as [number, number][]
     expect(computeEAR(open)).toBeCloseTo(1 / 3, 1)
   })
@@ -26,7 +26,7 @@ describe('computeEAR', () => {
       [4, -0.05],
       [6, 0],
       [4, 0.05],
-      [2, 0.05]
+      [2, 0.05],
     ] as [number, number][]
     expect(computeEAR(closed)).toBeLessThan(0.1)
   })
@@ -46,16 +46,16 @@ describe('extractClientFeatures', () => {
           live: 0.88,
           score: 0.99,
           gender: 'female',
-          emotion: [{ score: 0.9, emotion: 'happy' }]
-        }
-      ]
+          emotion: [{ score: 0.9, emotion: 'happy' }],
+        },
+      ],
     }
     const features = extractClientFeatures(humanResult)
     expect(features).toEqual({
       age: 27.3,
       antiSpoofScore: 0.92,
       livenessScore: 0.88,
-      faceDetectionScore: 0.99
+      faceDetectionScore: 0.99,
     })
     expect(features).not.toHaveProperty('gender')
     expect(features).not.toHaveProperty('emotion')
@@ -66,15 +66,15 @@ describe('extractClientFeatures', () => {
   })
 
   it('lança erro MULTIPLE_FACES se mais de 1 face', () => {
-    expect(() =>
-      extractClientFeatures({ face: [{ age: 25 }, { age: 30 }] })
-    ).toThrow('MULTIPLE_FACES')
+    expect(() => extractClientFeatures({ face: [{ age: 25 }, { age: 30 }] })).toThrow(
+      'MULTIPLE_FACES',
+    )
   })
 
   it('lança NO_FACE se age vem undefined (description não rodou)', () => {
-    expect(() =>
-      extractClientFeatures({ face: [{ real: 0.9, live: 0.9, score: 0.99 }] })
-    ).toThrow('NO_FACE')
+    expect(() => extractClientFeatures({ face: [{ real: 0.9, live: 0.9, score: 0.99 }] })).toThrow(
+      'NO_FACE',
+    )
   })
 
   it('default 0 para real/live/score ausentes', () => {
@@ -83,7 +83,7 @@ describe('extractClientFeatures', () => {
       age: 30,
       antiSpoofScore: 0,
       livenessScore: 0,
-      faceDetectionScore: 0
+      faceDetectionScore: 0,
     })
   })
 })
@@ -96,7 +96,7 @@ describe('buildEyeEARPoints', () => {
     [3, -2],
     [4, -2],
     [5, -1],
-    [6, 0]
+    [6, 0],
   ] as [number, number][]
   const lower = [
     [0, 0],
@@ -105,7 +105,7 @@ describe('buildEyeEARPoints', () => {
     [3, 2],
     [4, 2],
     [5, 1],
-    [6, 0]
+    [6, 0],
   ] as [number, number][]
 
   it('retorna 6 pontos quando upper e lower têm tamanho suficiente', () => {
@@ -125,12 +125,21 @@ describe('buildEyeEARPoints', () => {
   })
 
   it('retorna null se upper tem menos de 5 pontos', () => {
-    const pts = buildEyeEARPoints([[0, 0], [1, 1]], lower)
+    const pts = buildEyeEARPoints(
+      [
+        [0, 0],
+        [1, 1],
+      ],
+      lower,
+    )
     expect(pts).toBeNull()
   })
 
   it('retorna null se lower tem menos de 5 pontos', () => {
-    const pts = buildEyeEARPoints(upper, [[0, 0], [1, 1]])
+    const pts = buildEyeEARPoints(upper, [
+      [0, 0],
+      [1, 1],
+    ])
     expect(pts).toBeNull()
   })
 

@@ -22,7 +22,7 @@ export function useCamera(enabled: boolean = true): {
     navigator.mediaDevices
       .getUserMedia({
         video: { facingMode: 'user', width: 640, height: 480 },
-        audio: false
+        audio: false,
       })
       .then((s) => {
         if (cancelled) {

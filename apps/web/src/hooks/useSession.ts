@@ -1,9 +1,5 @@
 import { useReducer, useMemo } from 'react'
-import {
-  sanitizeLocal,
-  type VerifyResponse,
-  type VerifyDeclarationResponse
-} from '@face-ai/shared'
+import { sanitizeLocal, type VerifyResponse, type VerifyDeclarationResponse } from '@face-ai/shared'
 
 export type Screen =
   | 'consent'
@@ -43,14 +39,11 @@ export function initialSessionState(): SessionState {
     sessionId: crypto.randomUUID(),
     local,
     verifyResponse: null,
-    declarationResponse: null
+    declarationResponse: null,
   }
 }
 
-export function sessionReducer(
-  state: SessionState,
-  action: SessionAction
-): SessionState {
+export function sessionReducer(state: SessionState, action: SessionAction): SessionState {
   switch (action.type) {
     case 'CONSENT_ACCEPTED':
       return { ...state, screen: 'instructions' }
@@ -76,7 +69,7 @@ export function sessionReducer(
         ...state,
         screen: 'camera',
         verifyResponse: null,
-        declarationResponse: null
+        declarationResponse: null,
       }
   }
 }

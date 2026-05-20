@@ -1,10 +1,9 @@
 import { chromium } from 'playwright'
 import { join } from 'node:path'
 
-const SCREENSHOT_DIR = process.env.SCREENSHOT_DIR ?? join(
-  process.env.USERPROFILE ?? process.env.HOME ?? '',
-  '.claude/playwright/faceai-v2'
-)
+const SCREENSHOT_DIR =
+  process.env.SCREENSHOT_DIR ??
+  join(process.env.USERPROFILE ?? process.env.HOME ?? '', '.claude/playwright/faceai-v2')
 const BASE_URL = process.env.BASE_URL ?? 'http://localhost:5173'
 
 async function captureAt(page, name) {
@@ -17,15 +16,12 @@ async function captureAt(page, name) {
 async function main() {
   const browser = await chromium.launch({
     headless: true,
-    args: [
-      '--use-fake-ui-for-media-stream',
-      '--use-fake-device-for-media-stream'
-    ]
+    args: ['--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream'],
   })
   const context = await browser.newContext({
     viewport: { width: 1280, height: 800 },
     deviceScaleFactor: 1,
-    permissions: ['camera']
+    permissions: ['camera'],
   })
   const page = await context.newPage()
   page.on('console', (msg) => console.log('  [console]', msg.type(), msg.text()))

@@ -4,7 +4,7 @@ import {
   VerifyDeclarationResponseSchema,
   type ClientFeatures,
   type VerifyResponse,
-  type VerifyDeclarationResponse
+  type VerifyDeclarationResponse,
 } from '@face-ai/shared'
 import { env } from '../env'
 
@@ -21,7 +21,7 @@ export function getMockDecisionOverride(): MockDecisionOverride | null {
 
 export function cannedVerifyResponse(
   override: MockDecisionOverride,
-  sessionId: string
+  sessionId: string,
 ): VerifyResponse {
   if (override === 'aprovado') {
     return {
@@ -29,7 +29,7 @@ export function cannedVerifyResponse(
       faixa_etaria: '22+',
       jwt: `mock-jwt-${sessionId}`,
       motivo: null,
-      tamper_detected: false
+      tamper_detected: false,
     }
   }
   if (override === 'requer_declaracao') {
@@ -38,7 +38,7 @@ export function cannedVerifyResponse(
       faixa_etaria: '16-21',
       jwt: `mock-jwt-${sessionId}`,
       motivo: null,
-      tamper_detected: false
+      tamper_detected: false,
     }
   }
   return {
@@ -46,14 +46,14 @@ export function cannedVerifyResponse(
     faixa_etaria: '13-15',
     jwt: `mock-jwt-${sessionId}`,
     motivo: 'faixa_etaria_minor',
-    tamper_detected: false
+    tamper_detected: false,
   }
 }
 
 export async function verifyMock(
   features: ClientFeatures,
   sessionId: string,
-  _local: string
+  _local: string,
 ): Promise<VerifyResponse> {
   const override = getMockDecisionOverride()
   if (override) return cannedVerifyResponse(override, sessionId)
@@ -66,7 +66,7 @@ export async function verifyMock(
       faixa_etaria: faixa,
       jwt: `mock-jwt-${sessionId}`,
       motivo: 'liveness_fail',
-      tamper_detected: false
+      tamper_detected: false,
     }
   }
 
@@ -76,7 +76,7 @@ export async function verifyMock(
       faixa_etaria: faixa,
       jwt: `mock-jwt-${sessionId}`,
       motivo: 'antispoof_fail',
-      tamper_detected: false
+      tamper_detected: false,
     }
   }
 
@@ -86,7 +86,7 @@ export async function verifyMock(
       faixa_etaria: faixa,
       jwt: `mock-jwt-${sessionId}`,
       motivo: null,
-      tamper_detected: false
+      tamper_detected: false,
     }
   }
 
@@ -96,7 +96,7 @@ export async function verifyMock(
       faixa_etaria: faixa,
       jwt: `mock-jwt-${sessionId}`,
       motivo: null,
-      tamper_detected: false
+      tamper_detected: false,
     }
   }
 
@@ -105,18 +105,18 @@ export async function verifyMock(
     faixa_etaria: faixa,
     jwt: `mock-jwt-${sessionId}`,
     motivo: 'faixa_etaria_minor',
-    tamper_detected: false
+    tamper_detected: false,
   }
 }
 
 export async function verifyDeclarationMock(
   sessionId: string,
-  previousJwt: string
+  previousJwt: string,
 ): Promise<VerifyDeclarationResponse> {
   return {
     decisao: 'aprovado_com_declaracao',
     jwt: `mock-jwt-decl-${sessionId}-${previousJwt.slice(-6)}`,
-    timestamp_declaracao: new Date().toISOString()
+    timestamp_declaracao: new Date().toISOString(),
   }
 }
 
@@ -124,7 +124,7 @@ export async function verify(
   photo: Blob,
   features: ClientFeatures,
   sessionId: string,
-  local: string
+  local: string,
 ): Promise<VerifyResponse> {
   if (env.VITE_USE_MOCK_API) {
     return verifyMock(features, sessionId, local)
@@ -137,13 +137,13 @@ export async function verify(
 
   const res = await fetch(`${env.VITE_API_URL}/verify`, {
     method: 'POST',
-    body: formData
+    body: formData,
   })
   if (!res.ok) {
     const body = await res.json().catch(() => ({}))
     throw Object.assign(new Error('verify_failed'), {
       name: body.error ?? 'INTERNAL',
-      status: res.status
+      status: res.status,
     })
   }
   const data = await res.json()
@@ -152,7 +152,7 @@ export async function verify(
 
 export async function verifyDeclaration(
   sessionId: string,
-  previousJwt: string
+  previousJwt: string,
 ): Promise<VerifyDeclarationResponse> {
   if (env.VITE_USE_MOCK_API) {
     return verifyDeclarationMock(sessionId, previousJwt)
@@ -163,14 +163,14 @@ export async function verifyDeclaration(
     body: JSON.stringify({
       sessionId,
       previousJwt,
-      declaroSerMaiorDe18: true
-    })
+      declaroSerMaiorDe18: true,
+    }),
   })
   if (!res.ok) {
     const body = await res.json().catch(() => ({}))
     throw Object.assign(new Error('verify_declaration_failed'), {
       name: body.error ?? 'INTERNAL',
-      status: res.status
+      status: res.status,
     })
   }
   const data = await res.json()

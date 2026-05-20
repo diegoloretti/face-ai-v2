@@ -7,7 +7,7 @@ const aprovado: VerifyResponse = {
   faixa_etaria: '22+',
   jwt: 'mock-jwt-xyz',
   motivo: null,
-  tamper_detected: false
+  tamper_detected: false,
 }
 
 const requerDeclaracao: VerifyResponse = {
@@ -15,7 +15,7 @@ const requerDeclaracao: VerifyResponse = {
   faixa_etaria: '16-21',
   jwt: 'mock-jwt-abc',
   motivo: null,
-  tamper_detected: false
+  tamper_detected: false,
 }
 
 describe('sessionReducer', () => {
@@ -61,7 +61,7 @@ describe('sessionReducer', () => {
     const s = { ...initialSessionState(), screen: 'camera' as const }
     const next = sessionReducer(s, {
       type: 'VERIFY_RESPONSE',
-      response: requerDeclaracao
+      response: requerDeclaracao,
     })
     expect(next.screen).toBe('declaration')
     expect(next.verifyResponse).toEqual(requerDeclaracao)
@@ -71,12 +71,12 @@ describe('sessionReducer', () => {
     const s = {
       ...initialSessionState(),
       screen: 'declaration' as const,
-      verifyResponse: requerDeclaracao
+      verifyResponse: requerDeclaracao,
     }
     const declResponse = {
       decisao: 'aprovado_com_declaracao' as const,
       jwt: 'mock-jwt-decl-xyz',
-      timestamp_declaracao: '2026-05-20T12:34:56.000Z'
+      timestamp_declaracao: '2026-05-20T12:34:56.000Z',
     }
     const next = sessionReducer(s, { type: 'DECLARATION_CONFIRMED', response: declResponse })
     expect(next.screen).toBe('result')
@@ -93,13 +93,13 @@ describe('sessionReducer', () => {
     const declResponse = {
       decisao: 'aprovado_com_declaracao' as const,
       jwt: 'mock-jwt-decl-xyz',
-      timestamp_declaracao: '2026-05-20T12:34:56.000Z'
+      timestamp_declaracao: '2026-05-20T12:34:56.000Z',
     }
     const s = {
       ...initialSessionState(),
       screen: 'result' as const,
       verifyResponse: aprovado,
-      declarationResponse: declResponse
+      declarationResponse: declResponse,
     }
     const next = sessionReducer(s, { type: 'RETRY' })
     expect(next.screen).toBe('camera')
@@ -109,6 +109,8 @@ describe('sessionReducer', () => {
 
   it('sessionId é um UUID v4', () => {
     const s = initialSessionState()
-    expect(s.sessionId).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i)
+    expect(s.sessionId).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
+    )
   })
 })

@@ -9,7 +9,7 @@ import {
   buildEyeEARPoints,
   computeEAR,
   createBlinkDetector,
-  extractClientFeatures
+  extractClientFeatures,
 } from '../services/humanDetect'
 import { verify, cannedVerifyResponse, getMockDecisionOverride } from '../services/api'
 import { mapErrorToMessage } from '../lib/errors'
@@ -37,16 +37,13 @@ function toPoints2D(landmarks: unknown): Point[] | null {
 export function Camera({
   sessionId,
   local,
-  onResponse
+  onResponse,
 }: {
   sessionId: string
   local: string
   onResponse: (r: VerifyResponse) => void
 }) {
-  const mockOverride = useMemo(
-    () => (env.VITE_USE_MOCK_API ? getMockDecisionOverride() : null),
-    []
-  )
+  const mockOverride = useMemo(() => (env.VITE_USE_MOCK_API ? getMockDecisionOverride() : null), [])
   const realPipelineEnabled = mockOverride === null
 
   const { stream, error: cameraError } = useCamera(realPipelineEnabled)
@@ -56,9 +53,7 @@ export function Camera({
   const [blinkCount, setBlinkCount] = useState(0)
   const [blinkStatus, setBlinkStatus] = useState<BlinkChallengeStatus>('waiting')
   const [statusMsg, setStatusMsg] = useState(
-    mockOverride
-      ? `Modo demo: decisão "${mockOverride}"`
-      : 'Aguardando câmera...'
+    mockOverride ? `Modo demo: decisão "${mockOverride}"` : 'Aguardando câmera...',
   )
   const [capturing, setCapturing] = useState(false)
 
@@ -142,8 +137,8 @@ export function Camera({
         canvas.toBlob(
           (b) => (b ? resolve(b) : reject(new Error('toBlob failed'))),
           'image/jpeg',
-          0.9
-        )
+          0.9,
+        ),
       )
       const response = await verify(blob, features, sessionId, local)
       onResponse(response)
@@ -158,9 +153,7 @@ export function Camera({
     return (
       <main className="flex min-h-screen flex-col items-center justify-center gap-4 p-8 text-center">
         <StatusBadge tone="error">Erro</StatusBadge>
-        <p className="font-mono text-sm text-accent-pink">
-          {mapErrorToMessage(fatalError)}
-        </p>
+        <p className="font-mono text-sm text-accent-pink">{mapErrorToMessage(fatalError)}</p>
       </main>
     )
   }
@@ -168,14 +161,8 @@ export function Camera({
   return (
     <main className="flex min-h-screen flex-col items-center justify-center gap-6 p-8">
       <CameraView stream={stream} videoRef={videoRef} />
-      <BlinkChallenge
-        count={blinkCount}
-        required={REQUIRED_BLINKS}
-        status={blinkStatus}
-      />
-      <StatusBadge tone={blinkStatus === 'timeout' ? 'error' : 'info'}>
-        {statusMsg}
-      </StatusBadge>
+      <BlinkChallenge count={blinkCount} required={REQUIRED_BLINKS} status={blinkStatus} />
+      <StatusBadge tone={blinkStatus === 'timeout' ? 'error' : 'info'}>{statusMsg}</StatusBadge>
       {blinkStatus === 'complete' && (
         <button
           type="button"

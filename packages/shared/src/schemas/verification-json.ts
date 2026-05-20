@@ -10,17 +10,17 @@ export const VerificationJsonSchema = z.object({
     'recusado',
     'requer_declaracao',
     'aprovado_com_declaracao',
-    'recusado_inicial'
+    'recusado_inicial',
   ]),
   faixa_etaria: z.enum(['<13', '13-15', '16-21', '22+']).nullable(),
   motivo: z.string().nullable(),
   declaracao: z
     .object({
       declarou: z.boolean(),
-      timestamp_declaracao: z.iso.datetime()
+      timestamp_declaracao: z.iso.datetime(),
     })
     .nullable(),
-  jwt: z.string().nullable()
+  jwt: z.string().nullable(),
 })
 
 export type VerificationJson = z.infer<typeof VerificationJsonSchema>

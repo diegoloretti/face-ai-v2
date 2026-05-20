@@ -16,12 +16,12 @@ const humanConfig: Partial<Config> = {
     liveness: { enabled: true, modelPath: 'liveness.json' },
     iris: { enabled: true, modelPath: 'iris.json' },
     emotion: { enabled: false },
-    attention: { enabled: false }
+    attention: { enabled: false },
   },
   body: { enabled: false },
   hand: { enabled: false },
   object: { enabled: false },
-  gesture: { enabled: false }
+  gesture: { enabled: false },
 }
 
 // Singleton lazy: garante que load+warmup só acontecem uma vez,

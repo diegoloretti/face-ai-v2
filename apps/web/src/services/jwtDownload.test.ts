@@ -11,7 +11,7 @@ const samplePayload: VerificationJson = {
   faixa_etaria: '22+',
   motivo: null,
   declaracao: null,
-  jwt: 'mock-jwt-abc'
+  jwt: 'mock-jwt-abc',
 }
 
 describe('downloadVerificationJson', () => {

@@ -24,7 +24,7 @@ export function App() {
       faixa_etaria: null,
       motivo: 'recusa_inicial',
       declaracao: null,
-      jwt: null
+      jwt: null,
     }
     downloadVerificationJson(payload)
     dispatch({ type: 'CONSENT_REJECTED' })
@@ -44,9 +44,9 @@ export function App() {
         motivo: null,
         declaracao: {
           declarou: true,
-          timestamp_declaracao: decl.timestamp_declaracao
+          timestamp_declaracao: decl.timestamp_declaracao,
         },
-        jwt: decl.jwt
+        jwt: decl.jwt,
       }
       downloadVerificationJson(payload)
       dispatch({ type: 'DECLARATION_CONFIRMED', response: decl })
@@ -69,10 +69,10 @@ export function App() {
       declaracao: declResponse
         ? {
             declarou: true,
-            timestamp_declaracao: declResponse.timestamp_declaracao
+            timestamp_declaracao: declResponse.timestamp_declaracao,
           }
         : null,
-      jwt: declResponse ? declResponse.jwt : verifyResponse.jwt
+      jwt: declResponse ? declResponse.jwt : verifyResponse.jwt,
     }
     downloadVerificationJson(payload)
   }
@@ -89,19 +89,13 @@ export function App() {
     case 'privacy':
       return <PrivacyPolicy onBack={() => dispatch({ type: 'PRIVACY_BACK' })} />
     case 'instructions':
-      return (
-        <Instructions
-          onProceed={() => dispatch({ type: 'INSTRUCTIONS_PROCEED' })}
-        />
-      )
+      return <Instructions onProceed={() => dispatch({ type: 'INSTRUCTIONS_PROCEED' })} />
     case 'camera':
       return (
         <Camera
           sessionId={state.sessionId}
           local={state.local}
-          onResponse={(response) =>
-            dispatch({ type: 'VERIFY_RESPONSE', response })
-          }
+          onResponse={(response) => dispatch({ type: 'VERIFY_RESPONSE', response })}
         />
       )
     case 'declaration':
@@ -133,12 +127,6 @@ export function App() {
       )
     }
     case 'thankyou':
-      return (
-        <ThankYou
-          reason={
-            state.verifyResponse ? 'declaration_refused' : 'initial_refusal'
-          }
-        />
-      )
+      return <ThankYou reason={state.verifyResponse ? 'declaration_refused' : 'initial_refusal'} />
   }
 }

@@ -6,7 +6,7 @@ const baseFeatures: ClientFeatures = {
   age: 35,
   antiSpoofScore: 0.95,
   livenessScore: 0.95,
-  faceDetectionScore: 0.99
+  faceDetectionScore: 0.99,
 }
 
 const sessionId = '00000000-0000-4000-8000-000000000000'
@@ -23,52 +23,32 @@ describe('verifyMock', () => {
   })
 
   it('retorna "requer_declaracao" para idade na faixa 16-21', async () => {
-    const res = await verifyMock(
-      { ...baseFeatures, age: 18 },
-      sessionId,
-      local
-    )
+    const res = await verifyMock({ ...baseFeatures, age: 18 }, sessionId, local)
     expect(res.decisao).toBe('requer_declaracao')
     expect(res.faixa_etaria).toBe('16-21')
   })
 
   it('retorna "recusado" para idade < 13', async () => {
-    const res = await verifyMock(
-      { ...baseFeatures, age: 10 },
-      sessionId,
-      local
-    )
+    const res = await verifyMock({ ...baseFeatures, age: 10 }, sessionId, local)
     expect(res.decisao).toBe('recusado')
     expect(res.faixa_etaria).toBe('<13')
     expect(res.motivo).toBe('faixa_etaria_minor')
   })
 
   it('retorna "recusado" com motivo liveness_fail para liveness baixo', async () => {
-    const res = await verifyMock(
-      { ...baseFeatures, livenessScore: 0.3 },
-      sessionId,
-      local
-    )
+    const res = await verifyMock({ ...baseFeatures, livenessScore: 0.3 }, sessionId, local)
     expect(res.decisao).toBe('recusado')
     expect(res.motivo).toBe('liveness_fail')
   })
 
   it('retorna "recusado" com motivo antispoof_fail para antiSpoofScore baixo', async () => {
-    const res = await verifyMock(
-      { ...baseFeatures, antiSpoofScore: 0.3 },
-      sessionId,
-      local
-    )
+    const res = await verifyMock({ ...baseFeatures, antiSpoofScore: 0.3 }, sessionId, local)
     expect(res.decisao).toBe('recusado')
     expect(res.motivo).toBe('antispoof_fail')
   })
 
   it('faixa 13-15 recebe recusa hard sem declaração', async () => {
-    const res = await verifyMock(
-      { ...baseFeatures, age: 14 },
-      sessionId,
-      local
-    )
+    const res = await verifyMock({ ...baseFeatures, age: 14 }, sessionId, local)
     expect(res.decisao).toBe('recusado')
     expect(res.faixa_etaria).toBe('13-15')
     expect(res.motivo).toBe('faixa_etaria_minor')

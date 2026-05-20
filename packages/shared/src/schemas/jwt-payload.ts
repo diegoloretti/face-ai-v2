@@ -12,10 +12,10 @@ export const JwtPayloadSchema = z.object({
   declaracao: z
     .object({
       declarou: z.boolean(),
-      timestamp: z.iso.datetime()
+      timestamp: z.iso.datetime(),
     })
     .nullable(),
-  tamper_flag: z.boolean()
+  tamper_flag: z.boolean(),
 })
 
 export type JwtPayload = z.infer<typeof JwtPayloadSchema>

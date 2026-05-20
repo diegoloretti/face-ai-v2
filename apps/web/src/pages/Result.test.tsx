@@ -9,7 +9,7 @@ const aprovado: VerifyResponse = {
   faixa_etaria: '22+',
   jwt: 'mock-jwt-1',
   motivo: null,
-  tamper_detected: false
+  tamper_detected: false,
 }
 
 const requerDeclaracao: VerifyResponse = {
@@ -17,7 +17,7 @@ const requerDeclaracao: VerifyResponse = {
   faixa_etaria: '16-21',
   jwt: 'mock-jwt-3',
   motivo: null,
-  tamper_detected: false
+  tamper_detected: false,
 }
 
 const recusado: VerifyResponse = {
@@ -25,7 +25,7 @@ const recusado: VerifyResponse = {
   faixa_etaria: '13-15',
   jwt: 'mock-jwt-2',
   motivo: 'faixa_etaria_minor',
-  tamper_detected: false
+  tamper_detected: false,
 }
 
 describe('Result', () => {
@@ -36,7 +36,7 @@ describe('Result', () => {
         declarationConfirmed={false}
         onRetry={() => {}}
         onDownload={() => {}}
-      />
+      />,
     )
     expect(screen.getByText(/aprovado/i)).toBeInTheDocument()
   })
@@ -48,7 +48,7 @@ describe('Result', () => {
         declarationConfirmed={true}
         onRetry={() => {}}
         onDownload={() => {}}
-      />
+      />,
     )
     expect(screen.getByText(/aprovado com declaração/i)).toBeInTheDocument()
   })
@@ -60,7 +60,7 @@ describe('Result', () => {
         declarationConfirmed={false}
         onRetry={() => {}}
         onDownload={() => {}}
-      />
+      />,
     )
     expect(screen.getByText(/estimada abaixo do permitido/i)).toBeInTheDocument()
   })
@@ -73,7 +73,7 @@ describe('Result', () => {
         declarationConfirmed={false}
         onRetry={() => {}}
         onDownload={onDownload}
-      />
+      />,
     )
     await userEvent.click(screen.getByRole('button', { name: /baixar comprovante/i }))
     expect(onDownload).toHaveBeenCalledTimes(1)
@@ -87,7 +87,7 @@ describe('Result', () => {
         declarationConfirmed={false}
         onRetry={onRetry}
         onDownload={() => {}}
-      />
+      />,
     )
     await userEvent.click(screen.getByRole('button', { name: /nova verificação/i }))
     expect(onRetry).toHaveBeenCalledTimes(1)
