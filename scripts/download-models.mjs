@@ -19,6 +19,8 @@ const MODELS = [
   'liveness.bin',
   'iris.json',
   'iris.bin',
+  'facemesh.json',
+  'facemesh.bin',
 ]
 
 const CDN_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/human@3.3.6/models'
