@@ -37,3 +37,6 @@ test-results/
 
 # shared package emite dist via prepare/build - artefato, não vai pro repo
 packages/shared/dist/
+
+# apps/api models são copiados de apps/web/public/models no build
+apps/api/models/
