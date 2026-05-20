@@ -1,0 +1,4 @@
+# PII - selfies não vão pro repo
+*.jpg
+*.jpeg
+*.png
