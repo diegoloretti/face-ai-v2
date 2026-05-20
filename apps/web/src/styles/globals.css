@@ -10,7 +10,8 @@
   --color-accent-pink: #ff3cac;
 }
 
-html, body {
+html,
+body {
   background: var(--color-bg);
   color: var(--color-text);
   margin: 0;
