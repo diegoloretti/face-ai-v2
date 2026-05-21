@@ -21,3 +21,84 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm -r lint
       - run: pnpm -r typecheck
+
+  test-web:
+    runs-on: ubuntu-latest
+    needs: lint-and-type
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with: { version: 9 }
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @face-ai/web test
+
+  test-api:
+    runs-on: ubuntu-latest
+    needs: lint-and-type
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with: { version: 9 }
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @face-ai/api test
+        env:
+          SKIP_HUMAN_INTEGRATION: 'true'
+
+  test-shared:
+    runs-on: ubuntu-latest
+    needs: lint-and-type
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with: { version: 9 }
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @face-ai/shared test
+
+  audit:
+    runs-on: ubuntu-latest
+    needs: lint-and-type
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with: { version: 9 }
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm audit --audit-level=high
+
+  audit-lgpd-no-storage:
+    runs-on: ubuntu-latest
+    needs: lint-and-type
+    timeout-minutes: 2
+    steps:
+      - uses: actions/checkout@v4
+      - name: Reject sessionStorage/localStorage usage em apps/web/src
+        run: |
+          # NOTA: pattern usa "window\.(session|local)Storage" e
+          # "(session|local)Storage\." pra evitar falso-positivo no
+          # comment JSDoc do useSession.ts que cita os nomes das APIs
+          # literalmente (Plano 4 Task 10 audit comment).
+          if grep -rnE "window\.(session|local)Storage|\b(session|local)Storage\.[a-zA-Z]" apps/web/src; then
+            echo "::error::Persistência em sessionStorage/localStorage não permitida (audit LGPD Plano 4)."
+            echo "Vide apps/web/src/hooks/useSession.ts comment de audit."
+            exit 1
+          fi
+          echo "audit LGPD OK - sem persistência sensível"
