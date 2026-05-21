@@ -68,6 +68,7 @@ export function sessionReducer(state: SessionState, action: SessionAction): Sess
       return {
         ...state,
         screen: 'camera',
+        sessionId: crypto.randomUUID(),
         verifyResponse: null,
         declarationResponse: null,
       }
