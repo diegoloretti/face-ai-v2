@@ -102,3 +102,42 @@ jobs:
             exit 1
           fi
           echo "audit LGPD OK - sem persistência sensível"
+
+  e2e:
+    runs-on: ubuntu-latest
+    needs: [test-web, audit-lgpd-no-storage]
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with: { version: 9 }
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+
+      - name: Aguardar Vercel preview deploy
+        id: wait-deploy
+        uses: patrickedqvist/wait-for-vercel-preview@v1.3.3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          max_timeout: 300
+          environment: ${{ github.event_name == 'pull_request' && 'Preview' || 'Production' }}
+
+      - name: Install Playwright browsers
+        run: pnpm --filter @face-ai/web exec playwright install --with-deps chromium
+
+      - name: Run smoke e2e contra preview URL
+        env:
+          BASE_URL: ${{ steps.wait-deploy.outputs.url }}
+          CI: 'true'
+        run: pnpm --filter @face-ai/web run test:e2e --project=chromium-desktop --grep "smoke fluxo principal"
+
+      - name: Upload Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: apps/web/playwright-report/
+          retention-days: 7
