@@ -10,6 +10,12 @@ import { createLogger } from './lib/log.js'
 const env = loadEnv()
 const bootLog = createLogger({ correlationId: 'boot' })
 
+if (env.DECISION_MODE === 'composite') {
+  bootLog.warn(
+    'DECISION_MODE=composite ATIVO - NAO recomendado em prod sem calibracao via dados reais (Plano 5 = shadow mode, gate composite e Plano 6)',
+  )
+}
+
 const jwt = await createJwtService({
   privatePem: env.JWT_PRIVATE_KEY_PEM,
   publicPem: env.JWT_PUBLIC_KEY_PEM,
