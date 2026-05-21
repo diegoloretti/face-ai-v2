@@ -7,8 +7,10 @@ import { mountWellKnownJwks } from './routes/wellKnownJwks.js'
 import type { JwtService } from './services/jwt.js'
 import type { Db } from './services/db.js'
 import type { ServerFeatures } from './services/decisionEngine.js'
+import type { Env } from './env.js'
 
 export type AppDeps = {
+  env: Env
   allowedOrigins: string[]
   jwt: JwtService
   db: Db
@@ -28,6 +30,7 @@ export async function createApp(deps: AppDeps): Promise<Hono> {
   mountWellKnownJwks(app, deps.jwt)
   mountVerifyJwt(app, deps.jwt)
   mountVerify(app, {
+    env: deps.env,
     jwt: deps.jwt,
     db: deps.db,
     extractServerFeatures: deps.extractServerFeatures,

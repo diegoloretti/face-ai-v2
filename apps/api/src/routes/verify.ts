@@ -5,6 +5,7 @@ import { isHttpError } from '../lib/errors.js'
 import { decidir, detectTamper, type ServerFeatures } from '../services/decisionEngine.js'
 import type { JwtService } from '../services/jwt.js'
 import type { Db } from '../services/db.js'
+import type { Env } from '../env.js'
 import { hashIp } from '../lib/hashIp.js'
 
 const MAX_PHOTO_BYTES = 2 * 1024 * 1024
@@ -14,6 +15,7 @@ const MAX_BODY_BYTES = Math.floor(2.5 * 1024 * 1024)
 const ALLOWED_MIME = new Set(['image/jpeg', 'image/png'])
 
 type Deps = {
+  env: Env
   jwt: JwtService
   db: Db
   extractServerFeatures: (buf: Buffer) => Promise<ServerFeatures>
@@ -76,9 +78,14 @@ export function mountVerify(app: Hono, deps: Deps): void {
 
       try {
         const buf = Buffer.from(await photo.arrayBuffer())
-        const serverFeatures = await deps.extractServerFeatures(buf)
+        const serverFeaturesRaw = await deps.extractServerFeatures(buf)
+        // Blink vem do client (server roda 1 frame, blink e temporal).
+        const serverFeatures: ServerFeatures = {
+          ...serverFeaturesRaw,
+          blinkDetected: clientFeatures.blinkDetected ?? false,
+        }
         const tamperDetected = detectTamper(clientFeatures, serverFeatures)
-        const decision = decidir(serverFeatures)
+        const decision = decidir(serverFeatures, deps.env)
 
         const token = await deps.jwt.sign({
           iss: 'face-ai-v2',

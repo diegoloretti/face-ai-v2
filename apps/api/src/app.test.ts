@@ -3,6 +3,26 @@ import { generateKeyPair, exportPKCS8, exportSPKI } from 'jose'
 import { createJwtService } from './services/jwt.js'
 import { createApp } from './app.js'
 import type { Db } from './services/db.js'
+import type { Env } from './env.js'
+
+const envMock: Env = {
+  PORT: 8080,
+  SUPABASE_URL: 'https://abc.supabase.co',
+  SUPABASE_SERVICE_ROLE_KEY: 'service-role-key-placeholder',
+  JWT_PRIVATE_KEY_PEM: 'k',
+  JWT_PUBLIC_KEY_PEM: 'k',
+  ALLOWED_ORIGIN: ['http://localhost:5173'],
+  LIVENESS_THRESHOLD: 0.8,
+  ANTISPOOF_THRESHOLD: 0.85,
+  FACE_DETECTION_THRESHOLD: 0,
+  COMPOSITE_W_ANTISPOOF: 0.4,
+  COMPOSITE_W_LIVENESS: 0.4,
+  COMPOSITE_W_FACE_DETECTION: 0.2,
+  COMPOSITE_THRESHOLD_SHADOW: 0.78,
+  DECISION_MODE: 'legacy_and',
+  REQUIRE_BLINK: false,
+  ADMIN_METRICS_TOKEN: undefined,
+}
 
 let app: Awaited<ReturnType<typeof createApp>>
 
@@ -19,6 +39,7 @@ beforeAll(async () => {
     raw: {} as Db['raw'],
   }
   app = await createApp({
+    env: envMock,
     allowedOrigins: ['http://localhost:5173'],
     jwt,
     db,

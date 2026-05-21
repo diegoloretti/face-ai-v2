@@ -31,6 +31,7 @@ await extractServerFeatures(Buffer.alloc(0)).catch(() => {})
 bootLog.info('Human ready', { ms: Date.now() - t0 })
 
 const app = await createApp({
+  env,
   allowedOrigins: env.ALLOWED_ORIGIN,
   jwt,
   db,

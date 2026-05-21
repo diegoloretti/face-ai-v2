@@ -1,38 +1,98 @@
 import { classifyAge, type AgeTier } from '@face-ai/shared'
-
-export const LIVENESS_THRESHOLD = 0.8
-export const ANTISPOOF_THRESHOLD = 0.85
+import type { Env } from '../env.js'
 
 export type ServerFeatures = {
   age: number
   antiSpoofScore: number
   livenessScore: number
   faceDetectionScore: number
+  blinkDetected?: boolean
 }
+
+export type ScoresBreakdown = {
+  composite: number
+  antiSpoof: number
+  liveness: number
+  faceDetection: number
+  blinkDetected: boolean
+}
+
+export type FailureFlags = {
+  failed_liveness: boolean
+  failed_antispoof: boolean
+  failed_composite_shadow: boolean
+  failed_blink: boolean
+}
+
+export type DecisionMotivo =
+  | 'liveness_fail'
+  | 'antispoof_fail'
+  | 'blink_missing'
+  | 'composite_fail'
+  | 'faixa_etaria_minor'
+  | null
 
 export type Decision = {
   decisao: 'aprovado' | 'recusado' | 'requer_declaracao'
   faixa_etaria: AgeTier
-  motivo: 'liveness_fail' | 'antispoof_fail' | 'faixa_etaria_minor' | null
+  motivo: DecisionMotivo
+  scores: ScoresBreakdown
+  flags: FailureFlags
 }
 
-export function decidir(features: ServerFeatures): Decision {
+export function decidir(features: ServerFeatures, env: Env): Decision {
   const faixa = classifyAge(features.age)
+  const faceDetection = Number.isFinite(features.faceDetectionScore)
+    ? features.faceDetectionScore
+    : 0
+  const blinkDetected = features.blinkDetected ?? false
 
-  if (features.livenessScore < LIVENESS_THRESHOLD) {
-    return { decisao: 'recusado', faixa_etaria: faixa, motivo: 'liveness_fail' }
+  const composite =
+    env.COMPOSITE_W_ANTISPOOF * features.antiSpoofScore +
+    env.COMPOSITE_W_LIVENESS * features.livenessScore +
+    env.COMPOSITE_W_FACE_DETECTION * faceDetection
+
+  const flags: FailureFlags = {
+    failed_liveness: features.livenessScore < env.LIVENESS_THRESHOLD,
+    failed_antispoof: features.antiSpoofScore < env.ANTISPOOF_THRESHOLD,
+    failed_composite_shadow: composite < env.COMPOSITE_THRESHOLD_SHADOW,
+    failed_blink: env.REQUIRE_BLINK && !blinkDetected,
   }
-  if (features.antiSpoofScore < ANTISPOOF_THRESHOLD) {
-    return { decisao: 'recusado', faixa_etaria: faixa, motivo: 'antispoof_fail' }
+
+  const scores: ScoresBreakdown = {
+    composite,
+    antiSpoof: features.antiSpoofScore,
+    liveness: features.livenessScore,
+    faceDetection,
+    blinkDetected,
+  }
+
+  const base = { faixa_etaria: faixa, scores, flags }
+
+  if (flags.failed_blink) {
+    return { ...base, decisao: 'recusado', motivo: 'blink_missing' }
+  }
+
+  if (env.DECISION_MODE === 'legacy_and') {
+    if (flags.failed_liveness) {
+      return { ...base, decisao: 'recusado', motivo: 'liveness_fail' }
+    }
+    if (flags.failed_antispoof) {
+      return { ...base, decisao: 'recusado', motivo: 'antispoof_fail' }
+    }
+  } else {
+    if (flags.failed_composite_shadow) {
+      return { ...base, decisao: 'recusado', motivo: 'composite_fail' }
+    }
   }
 
   if (faixa === '22+') {
-    return { decisao: 'aprovado', faixa_etaria: faixa, motivo: null }
+    return { ...base, decisao: 'aprovado', motivo: null }
   }
   if (faixa === '16-21') {
-    return { decisao: 'requer_declaracao', faixa_etaria: faixa, motivo: null }
+    return { ...base, decisao: 'requer_declaracao', motivo: null }
   }
-  return { decisao: 'recusado', faixa_etaria: faixa, motivo: 'faixa_etaria_minor' }
+  return { ...base, decisao: 'recusado', motivo: 'faixa_etaria_minor' }
 }
 
 export const TAMPER_AGE_DELTA = 10

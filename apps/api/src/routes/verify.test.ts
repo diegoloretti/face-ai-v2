@@ -4,6 +4,26 @@ import { generateKeyPair, exportPKCS8, exportSPKI } from 'jose'
 import { createJwtService, type JwtService } from '../services/jwt.js'
 import { mountVerify } from './verify.js'
 import type { Db } from '../services/db.js'
+import type { Env } from '../env.js'
+
+const envMock: Env = {
+  PORT: 8080,
+  SUPABASE_URL: 'https://abc.supabase.co',
+  SUPABASE_SERVICE_ROLE_KEY: 'service-role-key-placeholder',
+  JWT_PRIVATE_KEY_PEM: 'k',
+  JWT_PUBLIC_KEY_PEM: 'k',
+  ALLOWED_ORIGIN: ['http://localhost:5173'],
+  LIVENESS_THRESHOLD: 0.8,
+  ANTISPOOF_THRESHOLD: 0.85,
+  FACE_DETECTION_THRESHOLD: 0,
+  COMPOSITE_W_ANTISPOOF: 0.4,
+  COMPOSITE_W_LIVENESS: 0.4,
+  COMPOSITE_W_FACE_DETECTION: 0.2,
+  COMPOSITE_THRESHOLD_SHADOW: 0.78,
+  DECISION_MODE: 'legacy_and',
+  REQUIRE_BLINK: false,
+  ADMIN_METRICS_TOKEN: undefined,
+}
 
 const jpegMagic = Uint8Array.from([0xff, 0xd8, 0xff, 0xe0, 0, 0, 0, 0])
 
@@ -52,6 +72,7 @@ describe('POST /verify', () => {
     const db = fakeDb()
     const app = new Hono()
     mountVerify(app, {
+      env: envMock,
       jwt,
       db,
       extractServerFeatures: vi.fn().mockResolvedValue(serverApproveFeatures),
@@ -73,6 +94,7 @@ describe('POST /verify', () => {
     const db = fakeDb()
     const app = new Hono()
     mountVerify(app, {
+      env: envMock,
       jwt,
       db,
       extractServerFeatures: vi.fn().mockResolvedValue({ ...serverApproveFeatures, age: 15 }),
@@ -90,6 +112,7 @@ describe('POST /verify', () => {
   it('400 quando clientFeatures malformado', async () => {
     const app = new Hono()
     mountVerify(app, {
+      env: envMock,
       jwt,
       db: fakeDb(),
       extractServerFeatures: vi.fn(),
@@ -107,6 +130,7 @@ describe('POST /verify', () => {
   it('413 quando foto excede 2MB', async () => {
     const app = new Hono()
     mountVerify(app, {
+      env: envMock,
       jwt,
       db: fakeDb(),
       extractServerFeatures: vi.fn(),
@@ -123,6 +147,7 @@ describe('POST /verify', () => {
   it('429 quando rate limit excedido', async () => {
     const app = new Hono()
     mountVerify(app, {
+      env: envMock,
       jwt,
       db: fakeDb(),
       extractServerFeatures: vi.fn(),
@@ -138,6 +163,7 @@ describe('POST /verify', () => {
   it('422 quando Human não encontra rosto', async () => {
     const app = new Hono()
     mountVerify(app, {
+      env: envMock,
       jwt,
       db: fakeDb(),
       extractServerFeatures: vi.fn().mockRejectedValue(
