@@ -20,6 +20,8 @@ const config: Partial<Config> = {
     liveness: { enabled: true },
     iris: { enabled: true },
     mesh: { enabled: true },
+    emotion: { enabled: false },
+    gear: { enabled: false },
   },
   body: { enabled: false },
   hand: { enabled: false },
