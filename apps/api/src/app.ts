@@ -4,6 +4,7 @@ import { mountVerify } from './routes/verify.js'
 import { mountVerifyDeclaration } from './routes/verifyDeclaration.js'
 import { mountVerifyJwt } from './routes/verifyJwt.js'
 import { mountWellKnownJwks } from './routes/wellKnownJwks.js'
+import { mountMetricsScores } from './routes/metricsScores.js'
 import type { JwtService } from './services/jwt.js'
 import type { Db } from './services/db.js'
 import type { ServerFeatures } from './services/decisionEngine.js'
@@ -43,6 +44,11 @@ export async function createApp(deps: AppDeps): Promise<Hono> {
     jwt: deps.jwt,
     db: deps.db,
     checkRateLimit: deps.checkRateLimit,
+  })
+  mountMetricsScores(app, {
+    adminToken: deps.env.ADMIN_METRICS_TOKEN,
+    supabase: deps.db.raw,
+    logger: deps.logger,
   })
 
   return app
