@@ -19,6 +19,7 @@ export function PrivacyPolicy({ onBack }: { onBack: () => void }) {
         <h2 className="font-display text-lg text-accent-cyan">Retenção</h2>
         <p>Metadados da verificação (sem imagem) são armazenados por até 90 dias.</p>
         <h2 className="font-display text-lg text-accent-cyan">Seus direitos</h2>
+        {/* TBD: email DPO - aguardando confirmação BAT (spec v0.4 seção 13) */}
         <p>
           Você pode solicitar acesso, correção ou exclusão dos seus dados via o DPO da BAT (contato
           a ser confirmado).
