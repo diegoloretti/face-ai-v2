@@ -30,11 +30,14 @@ const t0 = Date.now()
 await extractServerFeatures(Buffer.alloc(0)).catch(() => {})
 bootLog.info('Human ready', { ms: Date.now() - t0 })
 
+const appLogger = createLogger({ correlationId: 'app' })
+
 const app = await createApp({
   env,
   allowedOrigins: env.ALLOWED_ORIGIN,
   jwt,
   db,
+  logger: appLogger,
   extractServerFeatures,
   checkRateLimit: (ipHash) => checkRateLimit(supabase, ipHash, 'verify'),
 })

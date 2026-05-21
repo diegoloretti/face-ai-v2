@@ -6,7 +6,9 @@ import { decidir, detectTamper, type ServerFeatures } from '../services/decision
 import type { JwtService } from '../services/jwt.js'
 import type { Db } from '../services/db.js'
 import type { Env } from '../env.js'
+import type { Logger } from '../lib/log.js'
 import { hashIp } from '../lib/hashIp.js'
+import { buildTelemetryRow, persistTelemetry } from '../services/scoresTelemetry.js'
 
 const MAX_PHOTO_BYTES = 2 * 1024 * 1024
 // limite de body inclui overhead do multipart (boundary, headers, sessionId, local, clientFeatures JSON).
@@ -18,6 +20,7 @@ type Deps = {
   env: Env
   jwt: JwtService
   db: Db
+  logger: Logger
   extractServerFeatures: (buf: Buffer) => Promise<ServerFeatures>
   checkRateLimit: (ipHash: string) => Promise<{ ok: boolean; retryAfter: number }>
 }
@@ -114,6 +117,14 @@ export function mountVerify(app: Hono, deps: Deps): void {
           ip_hash: ipHash,
           user_agent_hash: uaHash,
         })
+
+        const telemetryRow = buildTelemetryRow(
+          sessionId,
+          decision,
+          serverFeatures.age,
+          deps.env.DECISION_MODE,
+        )
+        persistTelemetry(deps.db.raw, telemetryRow, deps.logger)
 
         const response: VerifyResponse = {
           decisao: decision.decisao,

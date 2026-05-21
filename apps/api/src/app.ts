@@ -8,12 +8,14 @@ import type { JwtService } from './services/jwt.js'
 import type { Db } from './services/db.js'
 import type { ServerFeatures } from './services/decisionEngine.js'
 import type { Env } from './env.js'
+import type { Logger } from './lib/log.js'
 
 export type AppDeps = {
   env: Env
   allowedOrigins: string[]
   jwt: JwtService
   db: Db
+  logger: Logger
   extractServerFeatures: (buf: Buffer) => Promise<ServerFeatures>
   checkRateLimit: (ipHash: string) => Promise<{ ok: boolean; retryAfter: number }>
 }
@@ -33,6 +35,7 @@ export async function createApp(deps: AppDeps): Promise<Hono> {
     env: deps.env,
     jwt: deps.jwt,
     db: deps.db,
+    logger: deps.logger,
     extractServerFeatures: deps.extractServerFeatures,
     checkRateLimit: deps.checkRateLimit,
   })

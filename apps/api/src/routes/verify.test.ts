@@ -45,8 +45,16 @@ function fakeDb(): Db {
   return {
     insertSessao: vi.fn().mockResolvedValue(undefined),
     updateDeclaration: vi.fn().mockResolvedValue(undefined),
-    raw: {} as Db['raw'],
+    raw: {
+      from: vi.fn().mockReturnValue({
+        insert: vi.fn().mockResolvedValue({ error: null }),
+      }),
+    } as never,
   }
+}
+
+function fakeLogger() {
+  return { debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() }
 }
 
 const serverApproveFeatures = {
@@ -75,6 +83,7 @@ describe('POST /verify', () => {
       env: envMock,
       jwt,
       db,
+      logger: fakeLogger(),
       extractServerFeatures: vi.fn().mockResolvedValue(serverApproveFeatures),
       checkRateLimit: vi.fn().mockResolvedValue({ ok: true, retryAfter: 0 }),
     })
@@ -97,6 +106,7 @@ describe('POST /verify', () => {
       env: envMock,
       jwt,
       db,
+      logger: fakeLogger(),
       extractServerFeatures: vi.fn().mockResolvedValue({ ...serverApproveFeatures, age: 15 }),
       checkRateLimit: vi.fn().mockResolvedValue({ ok: true, retryAfter: 0 }),
     })
@@ -115,6 +125,7 @@ describe('POST /verify', () => {
       env: envMock,
       jwt,
       db: fakeDb(),
+      logger: fakeLogger(),
       extractServerFeatures: vi.fn(),
       checkRateLimit: vi.fn().mockResolvedValue({ ok: true, retryAfter: 0 }),
     })
@@ -133,6 +144,7 @@ describe('POST /verify', () => {
       env: envMock,
       jwt,
       db: fakeDb(),
+      logger: fakeLogger(),
       extractServerFeatures: vi.fn(),
       checkRateLimit: vi.fn().mockResolvedValue({ ok: true, retryAfter: 0 }),
     })
@@ -150,6 +162,7 @@ describe('POST /verify', () => {
       env: envMock,
       jwt,
       db: fakeDb(),
+      logger: fakeLogger(),
       extractServerFeatures: vi.fn(),
       checkRateLimit: vi.fn().mockResolvedValue({ ok: false, retryAfter: 1234 }),
     })
@@ -166,6 +179,7 @@ describe('POST /verify', () => {
       env: envMock,
       jwt,
       db: fakeDb(),
+      logger: fakeLogger(),
       extractServerFeatures: vi.fn().mockRejectedValue(
         Object.assign(new Error('no_face'), { name: 'HttpError', status: 422, code: 'no_face' }),
       ),
@@ -174,5 +188,40 @@ describe('POST /verify', () => {
     const fd = await makeForm({ features: serverApproveFeatures })
     const res = await app.request('/verify', { method: 'POST', body: fd })
     expect(res.status).toBe(422)
+  })
+
+  it('telemetry insert falhando nao derruba response 200', async () => {
+    // Plano 5 Task 9: persistTelemetry e fire-and-forget. Se a insert na
+    // verification_scores falhar, deve apenas logar warn e nao bloquear /verify.
+    const db: Db = {
+      insertSessao: vi.fn().mockResolvedValue(undefined),
+      updateDeclaration: vi.fn().mockResolvedValue(undefined),
+      raw: {
+        from: vi.fn().mockReturnValue({
+          insert: vi.fn().mockResolvedValue({ error: { message: 'db_explodiu' } }),
+        }),
+      } as never,
+    }
+    const logger = fakeLogger()
+    const app = new Hono()
+    mountVerify(app, {
+      env: envMock,
+      jwt,
+      db,
+      logger,
+      extractServerFeatures: vi.fn().mockResolvedValue(serverApproveFeatures),
+      checkRateLimit: vi.fn().mockResolvedValue({ ok: true, retryAfter: 0 }),
+    })
+    const fd = await makeForm({ features: serverApproveFeatures })
+    const res = await app.request('/verify', { method: 'POST', body: fd })
+    expect(res.status).toBe(200)
+    const body = (await res.json()) as { decisao: string }
+    expect(body.decisao).toBe('aprovado')
+    // microtask flush pra deixar o .then() do persistTelemetry rodar.
+    await new Promise((resolve) => setImmediate(resolve))
+    expect(logger.warn).toHaveBeenCalledWith(
+      'verification_scores insert failed',
+      expect.objectContaining({ error: 'db_explodiu' }),
+    )
   })
 })

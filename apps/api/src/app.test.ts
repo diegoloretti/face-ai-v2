@@ -36,13 +36,18 @@ beforeAll(async () => {
   const db: Db = {
     insertSessao: vi.fn(),
     updateDeclaration: vi.fn(),
-    raw: {} as Db['raw'],
+    raw: {
+      from: vi.fn().mockReturnValue({
+        insert: vi.fn().mockResolvedValue({ error: null }),
+      }),
+    } as never,
   }
   app = await createApp({
     env: envMock,
     allowedOrigins: ['http://localhost:5173'],
     jwt,
     db,
+    logger: { debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() },
     extractServerFeatures: vi.fn().mockResolvedValue({
       age: 30,
       antiSpoofScore: 0.95,
