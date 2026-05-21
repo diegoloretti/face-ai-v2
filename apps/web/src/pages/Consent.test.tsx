@@ -31,4 +31,9 @@ describe('Consent', () => {
     await userEvent.click(screen.getByRole('button', { name: /política de privacidade/i }))
     expect(onViewPrivacy).toHaveBeenCalledTimes(1)
   })
+
+  it('declara que a foto não é armazenada (LGPD minimização)', () => {
+    render(<Consent onAccept={() => {}} onReject={() => {}} onViewPrivacy={() => {}} />)
+    expect(screen.getByText(/Nenhuma foto.{0,20}armazenada/i)).toBeInTheDocument()
+  })
 })
