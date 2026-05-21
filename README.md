@@ -41,7 +41,20 @@ pnpm dev:web           # http://localhost:5173 - deve mostrar "face-ai v2" cyber
 pnpm dev:api           # http://localhost:8080/ - retorna JSON {message, status:ok}
 ```
 
+## apps/api
+
+Backend Node 22 + Hono. Detalhes em [apps/api/README.md](apps/api/README.md).
+
+- Dev: `pnpm --filter @face-ai/api dev` (porta 8080)
+- Deploy: `flyctl deploy -a face-ai-v2 --config apps/api/fly.toml`
+- Prod: `https://face-ai-v2.fly.dev`
+
+## Fases concluídas
+
+- **Plano 1 (Setup):** Monorepo pnpm + Vite + Tailwind + ESLint flat + Vitest + workspace `packages/shared`. Hello world cyberpunk em apps/web.
+- **Plano 2 (Frontend Fase 2):** Telas reais (Consent, Privacy, Instructions, Camera, DeclarationRequired, Result, ThankYou), `useCamera`/`useHuman`/`BlinkChallenge`, integração `@vladmandic/human@3.3.6` no client pra blink detection.
+- **Plano 3 (Backend Fase 3):** Backend Node 22 + Hono em Fly.io com 4 rotas, decision engine 4 camadas, Postgres via `@supabase/supabase-js`, JWT ES256, JWKS, rate limit RPC.
+
 ## Próximas fases
 
-- **Plano 2 (Frontend Fase 2):** Substituir hello world por telas reais (Consent, Camera, Result, etc.), useCamera/useHuman/BlinkChallenge, integração com `@vladmandic/human@3.3.6`.
-- **Plano 3 (Backend Fase 3):** Adicionar rotas `/verify`, `/verify-declaration`, `/verify-jwt`, `/.well-known/jwks.json`, decision engine, Postgres via `@supabase/supabase-js`, JWT ES256, deploy Fly.io.
+- **Plano 4 (deploy frontend + CI):** Deploy de `apps/web` com HTTPS (Vercel/Netlify/Fly), GitHub Actions pra typecheck/lint/test/build em PR e auto-deploy de api e web em merge na main.
