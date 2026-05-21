@@ -52,9 +52,13 @@ COPY --from=builder /repo/apps/api/models apps/api/models
 # dist do shared já vem do builder stage via COPY. Depois rodar rebuild do tfjs-node
 # pra disparar SÓ o install script dele (baixa libtensorflow native).
 RUN pnpm install --frozen-lockfile --filter @face-ai/api... --prod --ignore-scripts
+
+# Rebuild precisa rodar do diretorio onde tfjs-node e dep direta (apps/api),
+# nao do workspace root - senao o install script do tfjs (download do binary)
+# nao executa e lib/napi-v8/tfjs_binding.node nunca aparece.
+WORKDIR /app/apps/api
 RUN pnpm rebuild @tensorflow/tfjs-node
 
-WORKDIR /app/apps/api
 ENV NODE_ENV=production
 ENV PORT=8080
 EXPOSE 8080
