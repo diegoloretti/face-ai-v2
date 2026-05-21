@@ -7,6 +7,7 @@ const baseFeatures: ClientFeatures = {
   antiSpoofScore: 0.95,
   livenessScore: 0.95,
   faceDetectionScore: 0.99,
+  blinkDetected: false,
 }
 
 const sessionId = '00000000-0000-4000-8000-000000000000'

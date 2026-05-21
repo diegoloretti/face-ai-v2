@@ -15,7 +15,7 @@ import { verify, cannedVerifyResponse, getMockDecisionOverride } from '../servic
 import { mapErrorToMessage } from '../lib/errors'
 import { env } from '../env'
 
-const REQUIRED_BLINKS = 2
+const REQUIRED_BLINKS = env.VITE_REQUIRE_BLINK ? 2 : 0
 const BLINK_TIMEOUT_MS = 10000
 const DETECT_INTERVAL_MS = 100
 const MOCK_SHORTCUT_DELAY_MS = 800
@@ -68,6 +68,12 @@ export function Camera({
   useEffect(() => {
     if (!realPipelineEnabled) return
     if (!stream || !human || blinkStatus !== 'waiting') return
+    // Plano 5: pular gate quando blink desligado via env (mantem telemetria coletando blinkCount=0).
+    if (REQUIRED_BLINKS === 0) {
+      setBlinkStatus('complete')
+      setStatusMsg('Centralize seu rosto e tire a foto.')
+      return
+    }
     setStatusMsg('Pisque duas vezes para confirmar.')
     const startedAt = performance.now()
     let cancelled = false
@@ -126,7 +132,11 @@ export function Camera({
     setStatusMsg('Analisando...')
     try {
       const result = await human.detect(video)
-      const features: ClientFeatures = extractClientFeatures(result)
+      const baseFeatures = extractClientFeatures(result)
+      const features: ClientFeatures = {
+        ...baseFeatures,
+        blinkDetected: blinkCount > 0,
+      }
       const canvas = document.createElement('canvas')
       canvas.width = video.videoWidth
       canvas.height = video.videoHeight

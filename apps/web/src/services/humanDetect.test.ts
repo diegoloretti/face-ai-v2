@@ -56,6 +56,7 @@ describe('extractClientFeatures', () => {
       antiSpoofScore: 0.92,
       livenessScore: 0.88,
       faceDetectionScore: 0.99,
+      blinkDetected: false,
     })
     expect(features).not.toHaveProperty('gender')
     expect(features).not.toHaveProperty('emotion')
@@ -84,6 +85,7 @@ describe('extractClientFeatures', () => {
       antiSpoofScore: 0,
       livenessScore: 0,
       faceDetectionScore: 0,
+      blinkDetected: false,
     })
   })
 })

@@ -75,6 +75,7 @@ export function extractClientFeatures(result: HumanResultMinimal): ClientFeature
     antiSpoofScore: f.real ?? 0,
     livenessScore: f.live ?? 0,
     faceDetectionScore: f.score ?? 0,
+    blinkDetected: false,
   }
 }
 

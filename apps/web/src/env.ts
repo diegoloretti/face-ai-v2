@@ -7,6 +7,10 @@ const EnvSchema = z
       .enum(['true', 'false'])
       .default('true')
       .transform((v) => v === 'true'),
+    VITE_REQUIRE_BLINK: z
+      .enum(['true', 'false'])
+      .default('true')
+      .transform((v) => v === 'true'),
   })
   .superRefine((data, ctx) => {
     if (!data.VITE_USE_MOCK_API && data.VITE_API_URL === 'https://placeholder.invalid') {
@@ -21,4 +25,5 @@ const EnvSchema = z
 export const env = EnvSchema.parse({
   VITE_API_URL: import.meta.env.VITE_API_URL,
   VITE_USE_MOCK_API: import.meta.env.VITE_USE_MOCK_API,
+  VITE_REQUIRE_BLINK: import.meta.env.VITE_REQUIRE_BLINK,
 })
