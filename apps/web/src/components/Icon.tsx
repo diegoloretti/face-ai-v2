@@ -44,13 +44,6 @@ export const Icon = {
       <path d="M4 20v-5h5" />
     </svg>
   ),
-  download: (props: IconProps) => (
-    <svg viewBox="0 0 24 24" strokeWidth={1.75} {...base} {...props}>
-      <path d="M12 4v11" />
-      <path d="M7 11l5 5 5-5" />
-      <path d="M5 20h14" />
-    </svg>
-  ),
   warn: (props: IconProps) => (
     <svg viewBox="0 0 24 24" strokeWidth={1.75} {...base} {...props}>
       <path d="M12 4l9 16H3L12 4z" />

@@ -8,27 +8,13 @@ import { DeclarationRequired } from './pages/DeclarationRequired'
 import { Result } from './pages/Result'
 import { ThankYou } from './pages/ThankYou'
 import { StatusBadge } from './components/StatusBadge'
-import { downloadVerificationJson } from './services/jwtDownload'
 import { verifyDeclaration } from './services/api'
-import type { VerificationJson, VerifyResponse } from '@face-ai/shared'
 
 export function App() {
   const { state, dispatch } = useSession()
   const [confirmingDeclaration, setConfirmingDeclaration] = useState(false)
 
   function handleInitialRefusal() {
-    const payload: VerificationJson = {
-      schema_version: '2.0',
-      session_id: state.sessionId,
-      timestamp: new Date().toISOString(),
-      local: state.local,
-      decisao: 'recusado_inicial',
-      faixa_etaria: null,
-      motivo: 'recusa_inicial',
-      declaracao: null,
-      jwt: null,
-    }
-    downloadVerificationJson(payload)
     dispatch({ type: 'CONSENT_REJECTED' })
   }
 
@@ -38,48 +24,12 @@ export function App() {
     setConfirmingDeclaration(true)
     try {
       const decl = await verifyDeclaration(state.sessionId, state.verifyResponse.jwt)
-      const payload: VerificationJson = {
-        schema_version: '2.0',
-        session_id: state.sessionId,
-        timestamp: new Date().toISOString(),
-        local: state.local,
-        decisao: 'aprovado_com_declaracao',
-        faixa_etaria: state.verifyResponse.faixa_etaria,
-        motivo: null,
-        declaracao: {
-          declarou: true,
-          timestamp_declaracao: decl.timestamp_declaracao,
-        },
-        jwt: decl.jwt,
-      }
-      downloadVerificationJson(payload)
       dispatch({ type: 'DECLARATION_CONFIRMED', response: decl })
     } catch (err) {
       console.error('verify_declaration_failed', err)
       setConfirmingDeclaration(false)
       dispatch({ type: 'DECLARATION_REFUSED' })
     }
-  }
-
-  function handleDownloadResult(verifyResponse: VerifyResponse) {
-    const declResponse = state.declarationResponse
-    const payload: VerificationJson = {
-      schema_version: '2.0',
-      session_id: state.sessionId,
-      timestamp: new Date().toISOString(),
-      local: state.local,
-      decisao: declResponse ? 'aprovado_com_declaracao' : verifyResponse.decisao,
-      faixa_etaria: verifyResponse.faixa_etaria,
-      motivo: verifyResponse.motivo,
-      declaracao: declResponse
-        ? {
-            declarou: true,
-            timestamp_declaracao: declResponse.timestamp_declaracao,
-          }
-        : null,
-      jwt: declResponse ? declResponse.jwt : verifyResponse.jwt,
-    }
-    downloadVerificationJson(payload)
   }
 
   switch (state.screen) {
@@ -132,7 +82,7 @@ export function App() {
           response={response}
           declarationConfirmed={state.declarationResponse !== null}
           onRetry={() => dispatch({ type: 'RETRY' })}
-          onDownload={() => handleDownloadResult(response)}
+          onRestart={() => dispatch({ type: 'RESTART' })}
         />
       )
     }

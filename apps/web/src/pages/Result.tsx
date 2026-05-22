@@ -1,7 +1,6 @@
 import type { VerifyResponse } from '@face-ai/shared'
 import { BrandLogo } from '../components/BrandLogo'
 import { ApprovalBanner } from '../components/ApprovalBanner'
-import { DownloadButton } from '../components/DownloadButton'
 import { Icon } from '../components/Icon'
 
 const MOTIVO_PT: Record<string, string> = {
@@ -14,12 +13,12 @@ export function Result({
   response,
   declarationConfirmed,
   onRetry,
-  onDownload,
+  onRestart,
 }: {
   response: VerifyResponse
   declarationConfirmed: boolean
   onRetry: () => void
-  onDownload: () => void
+  onRestart: () => void
 }) {
   const effectiveDecisao =
     declarationConfirmed && response.decisao === 'requer_declaracao'
@@ -43,7 +42,10 @@ export function Result({
               <Icon.refresh style={{ width: 16, height: 16 }} aria-hidden="true" />
               Nova verificação
             </button>
-            <DownloadButton onClick={onDownload} />
+            <button type="button" className="btn btn-primary btn-lg" onClick={onRestart}>
+              <Icon.arrowLeft style={{ width: 16, height: 16 }} aria-hidden="true" />
+              Voltar ao início
+            </button>
           </div>
         </div>
       </div>

@@ -13,6 +13,8 @@
   position: relative;
   width: 100%;
   min-height: 100vh;
+  min-height: 100dvh;
+  height: 100dvh;
   background: var(--neutral-0);
   color: var(--fg-2);
   font-family: var(--font-sans);
@@ -20,6 +22,15 @@
   line-height: var(--lh-body);
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+}
+
+@media (min-width: 768px) {
+  .screen {
+    height: auto;
+    min-height: 100dvh;
+    overflow: visible;
+  }
 }
 
 /* --- Logo slot ----------------------------------------------------------- */
@@ -74,14 +85,16 @@
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  padding: 80px 24px 24px;
+  padding: 64px 20px 16px;
   min-height: 0;
+  overflow: hidden;
 }
 
 @media (min-width: 768px) {
   .stage {
     padding: 96px 32px 64px;
     justify-content: center;
+    overflow: visible;
   }
 }
 
@@ -316,20 +329,25 @@
 .checklist {
   list-style: none;
   padding: 0;
-  margin: 0 0 32px;
+  margin: 0 0 16px;
   display: flex;
   flex-direction: column;
+}
+
+@media (min-width: 768px) {
+  .checklist {
+    margin-bottom: 32px;
+  }
 }
 .checklist-item {
   display: flex;
   align-items: flex-start;
   gap: 14px;
-  padding: 16px 0;
+  padding: 11px 0;
   border-top: 1px solid var(--border-1);
-  font-size: 16px;
+  font-size: 15px;
   color: var(--fg-2);
-  line-height: 1.5;
-  min-height: 48px;
+  line-height: 1.45;
 }
 .checklist-item:last-child {
   border-bottom: 1px solid var(--border-1);
@@ -337,8 +355,9 @@
 
 @media (min-width: 768px) {
   .checklist-item {
-    min-height: 0;
     padding: 14px 0;
+    font-size: 16px;
+    line-height: 1.5;
   }
 }
 
@@ -449,14 +468,18 @@
   overflow: hidden;
   box-shadow: var(--shadow-md);
   width: 100%;
-  aspect-ratio: 4 / 3;
+  flex: 1;
+  min-height: 240px;
+  max-height: 80vh;
 }
 
 @media (min-width: 768px) {
   .camera-frame {
     width: 480px;
     height: 360px;
-    aspect-ratio: auto;
+    flex: 0 0 auto;
+    min-height: 0;
+    max-height: none;
   }
 }
 
@@ -491,9 +514,17 @@
   justify-content: center;
   pointer-events: none;
 }
-.face-oval svg {
-  width: 100%;
-  height: 100%;
+.face-oval-shape {
+  height: 78%;
+  aspect-ratio: 3 / 4;
+  max-width: 75%;
+  border-radius: 50%;
+  border: 2px dashed rgba(0, 167, 225, 0.55);
+}
+.face-oval-spin {
+  border: none;
+  animation: spin 2.4s linear infinite;
+  transform-origin: center;
 }
 
 .camera-frame[data-state='permission_pending'] .camera-feed {
@@ -587,11 +618,23 @@
   flex-direction: column;
   align-items: center;
   width: 100%;
+  flex: 1;
+  min-height: 0;
+}
+
+.cam-stage {
+  padding-top: 56px;
+  padding-bottom: 16px;
 }
 
 @media (min-width: 768px) {
   .cam-stack {
     max-width: 480px;
+    flex: 0 1 auto;
+  }
+  .cam-stage {
+    padding-top: 96px;
+    padding-bottom: 64px;
   }
 }
 
@@ -846,7 +889,47 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 24px;
+  margin-bottom: 16px;
+}
+
+.privacy-stage {
+  align-items: stretch;
+  justify-content: flex-start;
+}
+
+.privacy-col {
+  margin: 0 auto;
+  min-height: 0;
+}
+
+.privacy-title {
+  margin-bottom: 16px;
+  flex-shrink: 0;
+}
+
+.privacy-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 4px;
+  -webkit-overflow-scrolling: touch;
+  mask-image: linear-gradient(to bottom, #000 0, #000 calc(100% - 24px), transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, #000 0, #000 calc(100% - 24px), transparent 100%);
+}
+
+@media (min-width: 768px) {
+  .privacy-scroll {
+    overflow: visible;
+    mask-image: none;
+    -webkit-mask-image: none;
+    padding-right: 0;
+  }
+  .privacy-title {
+    margin-bottom: 24px;
+  }
+  .privacy-header {
+    margin-bottom: 24px;
+  }
 }
 
 /* Bottom rainbow accent - PrivacyPolicy footer marker only */
@@ -876,17 +959,7 @@
   opacity: 0.9;
 }
 
-.calibrating-ring {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  pointer-events: none;
-}
-.calibrating-ring svg {
-  width: 100%;
-  height: 100%;
+.calibrating-ring .face-oval-spin {
   animation: spin 1.6s linear infinite;
 }
 

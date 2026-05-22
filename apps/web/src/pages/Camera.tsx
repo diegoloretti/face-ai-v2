@@ -314,9 +314,9 @@ export function Camera({
   const statusMsg = fatalError ? mapErrorToMessage(fatalError) : STATE_COPY[uiState]
 
   return (
-    <main className="screen">
+    <main className="screen screen-camera">
       <BrandLogo />
-      <div className="stage">
+      <div className="stage cam-stage">
         <div className="cam-stack">
           <CameraView stream={stream} videoRef={videoRef} state={uiState} />
 

@@ -35,7 +35,7 @@ describe('Result', () => {
         response={aprovado}
         declarationConfirmed={false}
         onRetry={() => {}}
-        onDownload={() => {}}
+        onRestart={() => {}}
       />,
     )
     expect(screen.getByRole('heading', { name: /verificação aprovada$/i })).toBeInTheDocument()
@@ -47,7 +47,7 @@ describe('Result', () => {
         response={requerDeclaracao}
         declarationConfirmed={true}
         onRetry={() => {}}
-        onDownload={() => {}}
+        onRestart={() => {}}
       />,
     )
     expect(
@@ -61,24 +61,24 @@ describe('Result', () => {
         response={recusado}
         declarationConfirmed={false}
         onRetry={() => {}}
-        onDownload={() => {}}
+        onRestart={() => {}}
       />,
     )
     expect(screen.getByText(/estimada abaixo do permitido/i)).toBeInTheDocument()
   })
 
-  it('botão "Baixar comprovante" chama onDownload', async () => {
-    const onDownload = vi.fn()
+  it('botão "Voltar ao início" chama onRestart', async () => {
+    const onRestart = vi.fn()
     render(
       <Result
         response={aprovado}
         declarationConfirmed={false}
         onRetry={() => {}}
-        onDownload={onDownload}
+        onRestart={onRestart}
       />,
     )
-    await userEvent.click(screen.getByRole('button', { name: /baixar comprovante/i }))
-    expect(onDownload).toHaveBeenCalledTimes(1)
+    await userEvent.click(screen.getByRole('button', { name: /voltar ao início/i }))
+    expect(onRestart).toHaveBeenCalledTimes(1)
   })
 
   it('botão "Nova verificação" chama onRetry', async () => {
@@ -88,10 +88,22 @@ describe('Result', () => {
         response={aprovado}
         declarationConfirmed={false}
         onRetry={onRetry}
-        onDownload={() => {}}
+        onRestart={() => {}}
       />,
     )
     await userEvent.click(screen.getByRole('button', { name: /nova verificação/i }))
     expect(onRetry).toHaveBeenCalledTimes(1)
+  })
+
+  it('não renderiza botão de baixar comprovante', () => {
+    render(
+      <Result
+        response={aprovado}
+        declarationConfirmed={false}
+        onRetry={() => {}}
+        onRestart={() => {}}
+      />,
+    )
+    expect(screen.queryByRole('button', { name: /baixar/i })).not.toBeInTheDocument()
   })
 })

@@ -34,6 +34,7 @@ export type SessionAction =
   | { type: 'DECLARATION_CONFIRMED'; response: VerifyDeclarationResponse }
   | { type: 'DECLARATION_REFUSED' }
   | { type: 'RETRY' }
+  | { type: 'RESTART' }
 
 export function initialSessionState(): SessionState {
   const local =
@@ -74,6 +75,14 @@ export function sessionReducer(state: SessionState, action: SessionAction): Sess
       return {
         ...state,
         screen: 'camera',
+        sessionId: crypto.randomUUID(),
+        verifyResponse: null,
+        declarationResponse: null,
+      }
+    case 'RESTART':
+      return {
+        ...state,
+        screen: 'consent',
         sessionId: crypto.randomUUID(),
         verifyResponse: null,
         declarationResponse: null,

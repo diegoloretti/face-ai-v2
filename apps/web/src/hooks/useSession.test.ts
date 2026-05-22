@@ -107,6 +107,26 @@ describe('sessionReducer', () => {
     expect(next.declarationResponse).toBeNull()
   })
 
+  it('RESTART volta para consent limpando todo o estado e regenera sessionId', () => {
+    const declResponse = {
+      decisao: 'aprovado_com_declaracao' as const,
+      jwt: 'mock-jwt-decl-xyz',
+      timestamp_declaracao: '2026-05-20T12:34:56.000Z',
+    }
+    const s = {
+      ...initialSessionState(),
+      screen: 'result' as const,
+      verifyResponse: aprovado,
+      declarationResponse: declResponse,
+    }
+    const originalId = s.sessionId
+    const next = sessionReducer(s, { type: 'RESTART' })
+    expect(next.screen).toBe('consent')
+    expect(next.verifyResponse).toBeNull()
+    expect(next.declarationResponse).toBeNull()
+    expect(next.sessionId).not.toBe(originalId)
+  })
+
   it('sessionId é um UUID v4', () => {
     const s = initialSessionState()
     expect(s.sessionId).toMatch(

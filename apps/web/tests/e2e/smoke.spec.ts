@@ -10,7 +10,9 @@ async function captureAt(page: Page, name: string) {
 test.describe('smoke fluxo principal', () => {
   test('Consent -> PrivacyPolicy -> volta -> Instructions -> Camera', async ({ page }) => {
     await page.goto(`/?local=smoke`)
-    await expect(page.getByRole('heading', { name: /FACE\.AI/i })).toBeVisible({ timeout: 10000 })
+    await expect(page.getByRole('heading', { name: /verificação de idade/i })).toBeVisible({
+      timeout: 10000,
+    })
     await captureAt(page, '01-consent')
 
     await page.getByRole('button', { name: /política de privacidade/i }).click()
