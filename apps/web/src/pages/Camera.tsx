@@ -168,7 +168,10 @@ export function Camera({
           '[perf-flow]',
           JSON.stringify(measures.map((m) => ({ name: m.name, ms: Math.round(m.duration) }))),
         )
-      } catch {}
+      } catch {
+        // performance.measure throws if a mark is absent (e.g. direct entry into Camera without Consent).
+        // Silent on purpose: instrumentation is best-effort.
+      }
       onResponse(response)
     } catch (err) {
       setStatusMsg(mapErrorToMessage(err))
