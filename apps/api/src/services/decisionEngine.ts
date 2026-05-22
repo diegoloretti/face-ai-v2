@@ -45,24 +45,30 @@ export function decidir(features: ServerFeatures, env: Env): Decision {
   const faceDetection = Number.isFinite(features.faceDetectionScore)
     ? features.faceDetectionScore
     : 0
+  const antiSpoof = Number.isFinite(features.antiSpoofScore)
+    ? features.antiSpoofScore
+    : 0
+  const liveness = Number.isFinite(features.livenessScore)
+    ? features.livenessScore
+    : 0
   const blinkDetected = features.blinkDetected ?? false
 
   const composite =
-    env.COMPOSITE_W_ANTISPOOF * features.antiSpoofScore +
-    env.COMPOSITE_W_LIVENESS * features.livenessScore +
+    env.COMPOSITE_W_ANTISPOOF * antiSpoof +
+    env.COMPOSITE_W_LIVENESS * liveness +
     env.COMPOSITE_W_FACE_DETECTION * faceDetection
 
   const flags: FailureFlags = {
-    failed_liveness: features.livenessScore < env.LIVENESS_THRESHOLD,
-    failed_antispoof: features.antiSpoofScore < env.ANTISPOOF_THRESHOLD,
+    failed_liveness: liveness < env.LIVENESS_THRESHOLD,
+    failed_antispoof: antiSpoof < env.ANTISPOOF_THRESHOLD,
     failed_composite_shadow: composite < env.COMPOSITE_THRESHOLD_SHADOW,
     failed_blink: env.REQUIRE_BLINK && !blinkDetected,
   }
 
   const scores: ScoresBreakdown = {
     composite,
-    antiSpoof: features.antiSpoofScore,
-    liveness: features.livenessScore,
+    antiSpoof,
+    liveness,
     faceDetection,
     blinkDetected,
   }

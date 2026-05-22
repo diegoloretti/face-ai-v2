@@ -165,6 +165,51 @@ describe('decidir', () => {
     expect(Number.isFinite(r.scores.composite)).toBe(true)
     expect(r.scores.faceDetection).toBe(0)
   })
+
+  it('NaN em antiSpoofScore vira 0 e recusa antispoof_fail', () => {
+    const r = decidir(features({ antiSpoofScore: NaN }), envWith())
+    expect(r.decisao).toBe('recusado')
+    expect(r.motivo).toBe('antispoof_fail')
+    expect(r.scores.antiSpoof).toBe(0)
+    expect(r.flags.failed_antispoof).toBe(true)
+  })
+
+  it('NaN em livenessScore vira 0 e recusa liveness_fail', () => {
+    const r = decidir(features({ livenessScore: NaN }), envWith())
+    expect(r.decisao).toBe('recusado')
+    expect(r.motivo).toBe('liveness_fail')
+    expect(r.scores.liveness).toBe(0)
+    expect(r.flags.failed_liveness).toBe(true)
+  })
+
+  it('undefined em antiSpoofScore comporta como NaN', () => {
+    const r = decidir(features({ antiSpoofScore: undefined as unknown as number }), envWith())
+    expect(r.decisao).toBe('recusado')
+    expect(r.motivo).toBe('antispoof_fail')
+    expect(r.scores.antiSpoof).toBe(0)
+  })
+
+  it('Infinity em antiSpoofScore vira 0 (não-finito)', () => {
+    const r = decidir(features({ antiSpoofScore: Infinity }), envWith())
+    expect(r.decisao).toBe('recusado')
+    expect(r.motivo).toBe('antispoof_fail')
+    expect(r.scores.antiSpoof).toBe(0)
+  })
+
+  it('composite usa antiSpoof normalizado quando NaN', () => {
+    const r = decidir(
+      features({ antiSpoofScore: NaN, livenessScore: 0.9, faceDetectionScore: 0.99 }),
+      envWith(),
+    )
+    // composite = 0.4*0 + 0.4*0.9 + 0.2*0.99 = 0.558
+    expect(r.scores.composite).toBeCloseTo(0.4 * 0 + 0.4 * 0.9 + 0.2 * 0.99, 5)
+    expect(r.flags.failed_composite_shadow).toBe(true)
+  })
+
+  it('faceDetectionScore NaN (regressão Plano 5) continua sendo tratado', () => {
+    const r = decidir(features({ faceDetectionScore: NaN }), envWith())
+    expect(r.scores.faceDetection).toBe(0)
+  })
 })
 
 describe('detectTamper', () => {
