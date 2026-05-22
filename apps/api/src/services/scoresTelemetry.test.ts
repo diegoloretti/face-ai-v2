@@ -127,8 +127,8 @@ describe('persistTelemetry', () => {
   })
 
   it('loga warn quando supabase.from() lança SINCRONAMENTE (sync throw)', () => {
-    // Codex round 4 finding: throw sincrono em from() ou insert() escapa do
-    // .catch() porque nao chega a virar promise. try/catch externo deve pegar.
+    // Throw sincrono em from() ou insert() escapa do .catch() porque nao
+    // chega a virar promise. try/catch externo deve pegar.
     const supabase = {
       from: vi.fn().mockImplementation(() => {
         throw new Error('client not initialized')

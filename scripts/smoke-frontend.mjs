@@ -3,7 +3,7 @@ import { join } from 'node:path'
 
 const SCREENSHOT_DIR =
   process.env.SCREENSHOT_DIR ??
-  join(process.env.USERPROFILE ?? process.env.HOME ?? '', '.claude/playwright/faceai-v2')
+  join(process.env.USERPROFILE ?? process.env.HOME ?? '', '.playwright-screenshots/faceai-v2')
 const BASE_URL = process.env.BASE_URL ?? 'http://localhost:5173'
 
 async function captureAt(page, name) {

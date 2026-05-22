@@ -11,7 +11,7 @@ export function checkCompositeWeightsSum(
     env.COMPOSITE_W_ANTISPOOF + env.COMPOSITE_W_LIVENESS + env.COMPOSITE_W_FACE_DETECTION
   if (Math.abs(sum - 1) > TOLERANCE) {
     logger.warn(
-      'composite weights sum out of tolerance [0.999, 1.001] - decision behavior may diverge from spec',
+      'composite weights sum out of tolerance [0.999, 1.001] - decision behavior may diverge from expected',
       {
         sum,
         weights: {

@@ -1,4 +1,4 @@
--- Plano 5 - Telemetria de scores antispoof/liveness pra calibracao offline.
+-- Telemetria de scores antispoof/liveness pra calibracao offline.
 -- Sem PII, sem foto. Tabela separada de sessoes pra permitir insert fire-and-forget.
 
 create table verification_scores (
@@ -27,4 +27,4 @@ create index verification_scores_session_id_idx on verification_scores (session_
 alter table verification_scores enable row level security;
 -- Sem policies. Anon e authenticated nao tem acesso. Service_role tem bypass nativo.
 
-comment on table verification_scores is 'Telemetria de scores antispoof/liveness pra calibracao offline. Sem PII, sem foto. Plano 5.';
+comment on table verification_scores is 'Telemetria de scores antispoof/liveness pra calibracao offline. Sem PII, sem foto.';

@@ -199,7 +199,7 @@ describe('createBlinkDetector', () => {
   })
 
   it('com baseline calibrado, conta blink mesmo quando peak não cruza 0.20', () => {
-    // Caso Magda real: olho aberto ~0.37, blink natural só desce até 0.22.
+    // Olho aberto ~0.37, blink natural só desce até 0.22.
     // Threshold absoluto 0.20 perdia, threshold relativo (0.37*0.7=0.259) pega.
     const det = createBlinkDetector({ baseline: 0.37 })
     det.processFrame(0.37, 0.37, 0)
@@ -209,8 +209,8 @@ describe('createBlinkDetector', () => {
   })
 
   it('com baseline, conta blink usando média quando um olho mal cruza', () => {
-    // Caso Magda: L=0.19 (cruza absoluto), R=0.21 (não cruza absoluto). Média
-    // = 0.20. Com threshold relativo 0.259, média 0.20 cruza com folga.
+    // L=0.19 (cruza absoluto), R=0.21 (não cruza absoluto). Média = 0.20.
+    // Com threshold relativo 0.259, média 0.20 cruza com folga.
     const det = createBlinkDetector({ baseline: 0.37 })
     det.processFrame(0.37, 0.37, 0)
     det.processFrame(0.19, 0.21, 100)

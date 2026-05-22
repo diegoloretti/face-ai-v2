@@ -36,8 +36,7 @@ commitado.
 4. Validar: download de `faceai-<session_id>.json` no celular contém JWT verificável via `/verify-jwt`.
 
 Se antispoof recusar webcam de celular: anotar `motivo: antispoof_fail` e
-abrir issue/PR pra ajustar `ANTISPOOF_THRESHOLD` no backend (fora do escopo
-Plano 4).
+abrir issue/PR pra ajustar `ANTISPOOF_THRESHOLD` no backend.
 
 ## Smoke desktop (Playwright)
 

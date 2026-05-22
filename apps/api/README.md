@@ -23,7 +23,7 @@ pnpm --filter @face-ai/api dev
 # espera: { "message": "face-ai api v2", "status": "ok" } em http://localhost:8080/
 ```
 
-> Windows: o binário nativo do `@tensorflow/tfjs-node` não compila no Windows do Diego e o `await import` em `humanRunner.ts` falha silenciosamente. Tudo que não toca em Human (typecheck, lint, unit tests) roda normalmente; integração real só em Docker/Fly Linux.
+> Windows: o binário nativo do `@tensorflow/tfjs-node` não compila no Windows e o `await import` em `humanRunner.ts` falha silenciosamente. Tudo que não toca em Human (typecheck, lint, unit tests) roda normalmente; integração real só em Docker/Fly Linux.
 
 ## Testes
 

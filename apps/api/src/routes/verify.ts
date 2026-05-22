@@ -43,7 +43,7 @@ export function mountVerify(app: Hono, deps: Deps): void {
         return c.json({ error: 'rate_limit', retryAfter: rate.retryAfter }, 429)
       }
 
-      // Codex round 1 - Important 1: rejeitar pelo Content-Length ANTES de parsear o multipart.
+      // Rejeitar pelo Content-Length antes de parsear o multipart pra evitar OOM em upload grande.
       const contentLength = Number(c.req.header('content-length') ?? '0')
       if (contentLength > 0 && contentLength > MAX_BODY_BYTES) {
         return c.json({ error: 'photo_too_large', size: contentLength }, 413)

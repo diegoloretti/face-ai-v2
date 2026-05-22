@@ -86,7 +86,7 @@ describe('EnvSchema', () => {
   it('aceita pesos do composite fora de soma 1.0 (sem hard error - warning e runtime)', () => {
     const parsed = EnvSchema.parse({ ...baseValid, COMPOSITE_W_ANTISPOOF: '0.5' })
     expect(parsed.COMPOSITE_W_ANTISPOOF).toBe(0.5)
-    // Spec §3.6: soma fora de tolerancia vira bootLog.warn, nao Zod refine.
+    // Soma fora de tolerancia vira bootLog.warn no boot, nao Zod refine.
     // Validacao do warning e feita em compositeWeightsCheck.test.ts.
   })
 

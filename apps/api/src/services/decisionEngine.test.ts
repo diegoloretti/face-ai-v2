@@ -206,7 +206,7 @@ describe('decidir', () => {
     expect(r.flags.failed_composite_shadow).toBe(true)
   })
 
-  it('faceDetectionScore NaN (regressão Plano 5) continua sendo tratado', () => {
+  it('faceDetectionScore NaN continua sendo tratado como 0', () => {
     const r = decidir(features({ faceDetectionScore: NaN }), envWith())
     expect(r.scores.faceDetection).toBe(0)
   })

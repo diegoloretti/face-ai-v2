@@ -96,13 +96,12 @@ jobs:
       - uses: actions/checkout@v4
       - name: Reject sessionStorage/localStorage usage em apps/web/src
         run: |
-          # NOTA: pattern usa "window\.(session|local)Storage" e
-          # "(session|local)Storage\." pra evitar falso-positivo no
-          # comment JSDoc do useSession.ts que cita os nomes das APIs
-          # literalmente (Plano 4 Task 10 audit comment).
+          # Pattern usa "window\.(session|local)Storage" e
+          # "(session|local)Storage\." pra evitar falso-positivo no comment
+          # JSDoc do useSession.ts que cita os nomes das APIs literalmente.
           if grep -rnE "window\.(session|local)Storage|\b(session|local)Storage\.[a-zA-Z]" apps/web/src; then
-            echo "::error::Persistência em sessionStorage/localStorage não permitida (audit LGPD Plano 4)."
-            echo "Vide apps/web/src/hooks/useSession.ts comment de audit."
+            echo "::error::Persistência em sessionStorage/localStorage não permitida (LGPD)."
+            echo "Vide apps/web/src/hooks/useSession.ts."
             exit 1
           fi
           echo "audit LGPD OK - sem persistência sensível"

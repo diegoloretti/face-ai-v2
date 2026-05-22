@@ -1,5 +1,5 @@
-# Codex round 1 - Important 2: 256MB foi otimista demais pra tfjs-node + Human warmup
-# eager. 512MB é o piso seguro; ajustar pra 1024 se Task 21 Step 6 mediu pico > 450MB.
+# 512MB é o piso pra tfjs-node + Human warmup eager (256MB OOM no boot).
+# Subir pra 1024 se aparecer OOM em prod sob carga.
 app = "face-ai-v2"
 primary_region = "gru"
 

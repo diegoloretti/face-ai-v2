@@ -50,12 +50,11 @@ export function persistTelemetry(
   row: TelemetryRow,
   logger: Logger,
 ): void {
-  // Defesa em duas camadas:
+  // Defesa em duas camadas pra garantir fire-and-forget de verdade:
   // (1) try/catch envolve a chain inteira pra capturar throws SINCRONOS
-  //     (ex: supabase.from() ou .insert() lancando antes de retornar promise).
-  // (2) .catch() pega rejections assincronas da promise do insert.
-  // Codex round 4 finding: sem o try/catch externo, throw sincrono escapa e
-  // bloqueia /verify, violando o contrato "fire-and-forget nunca bloqueia".
+  //     (supabase.from() ou .insert() lancando antes de retornar promise).
+  // (2) .catch() pega rejections assincronas. Sem (1), throw sincrono escapa
+  //     e bloqueia /verify.
   try {
     Promise.resolve(supabase.from('verification_scores').insert(row))
       .then(({ error }) => {

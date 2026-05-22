@@ -15,7 +15,7 @@ checkCompositeWeightsSum(env, bootLog)
 
 if (env.DECISION_MODE === 'composite') {
   bootLog.warn(
-    'DECISION_MODE=composite ATIVO - NAO recomendado em prod sem calibracao via dados reais (Plano 5 = shadow mode, gate composite e Plano 6)',
+    'DECISION_MODE=composite ATIVO - confirmar pesos/threshold calibrados nos dados reais antes de subir trafego.',
   )
 }
 

@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url'
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const targetDir = join(__dirname, '..', 'apps', 'web', 'public', 'models')
 
-// Modelos necessarios conforme spec secao 4.4 (config Human)
+// Modelos do Human que o app usa em runtime.
 // Source: https://github.com/vladmandic/human-models/tree/main/models
 const MODELS = [
   'blazeface.json',

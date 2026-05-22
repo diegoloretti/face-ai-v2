@@ -191,8 +191,8 @@ describe('POST /verify', () => {
   })
 
   it('telemetry insert falhando nao derruba response 200', async () => {
-    // Plano 5 Task 9: persistTelemetry e fire-and-forget. Se a insert na
-    // verification_scores falhar, deve apenas logar warn e nao bloquear /verify.
+    // persistTelemetry e fire-and-forget. Se a insert na verification_scores
+    // falhar, deve apenas logar warn e nao bloquear /verify.
     const db: Db = {
       insertSessao: vi.fn().mockResolvedValue(undefined),
       updateDeclaration: vi.fn().mockResolvedValue(undefined),

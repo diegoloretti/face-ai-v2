@@ -122,7 +122,7 @@ export function Camera({
   useEffect(() => {
     if (!realPipelineEnabled) return
     if (!stream || !human || blinkStatus !== 'waiting') return
-    // Plano 5: pular gate quando blink desligado via env (mantem telemetria coletando blinkCount=0).
+    // Pular gate quando blink desligado via env (mantem telemetria coletando blinkCount=0).
     if (REQUIRED_BLINKS === 0) {
       setBlinkStatus('complete')
       setStatusMsg('Centralize seu rosto e tire a foto.')

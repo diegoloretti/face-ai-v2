@@ -1,16 +1,11 @@
 import { useReducer, useMemo } from 'react'
 import { sanitizeLocal, type VerifyResponse, type VerifyDeclarationResponse } from '@face-ai/shared'
 
-/**
- * AUDIT LGPD (Plano 4):
- * useSession usa useReducer em memória. NÃO persistir em sessionStorage
- * nem localStorage. Sessão se perde no refresh - by design pra minimização
- * de dados (spec v0.4 seção 1 bullet 5). RETRY regenera sessionId via
- * crypto.randomUUID() no próprio reducer.
- *
- * CI guard em .github/workflows/ci.yml (Task 13 do Plano 4) rejeita PRs que
- * adicionem sessionStorage/localStorage em apps/web/src.
- */
+// LGPD: useSession usa useReducer em memória. NÃO persistir em
+// sessionStorage nem localStorage. Sessão se perde no refresh - by design
+// pra minimização de dados. RETRY regenera sessionId via crypto.randomUUID()
+// no próprio reducer. CI guard em .github/workflows/ci.yml rejeita PRs que
+// adicionem sessionStorage/localStorage em apps/web/src.
 
 export type Screen =
   | 'consent'
