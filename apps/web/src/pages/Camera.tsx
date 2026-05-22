@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useMemo } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { ClientFeatures, VerifyResponse } from '@face-ai/shared'
 import { CameraView } from '../components/CameraView'
 import { BlinkChallenge, type BlinkChallengeStatus } from '../components/BlinkChallenge'
@@ -49,12 +49,6 @@ export function Camera({
 }) {
   const mockOverride = useMemo(() => (env.VITE_USE_MOCK_API ? getMockDecisionOverride() : null), [])
   const realPipelineEnabled = mockOverride === null
-  const debugEAR = useMemo(
-    () =>
-      typeof window !== 'undefined' &&
-      new URLSearchParams(window.location.search).has('debug-ear'),
-    [],
-  )
 
   const { stream, error: cameraError } = useCamera(realPipelineEnabled)
   const { human, error: humanError } = useHuman(realPipelineEnabled)
@@ -62,27 +56,56 @@ export function Camera({
   const detectorRef = useRef(createBlinkDetector())
   const calibrationSamplesRef = useRef<number[]>([])
   const calibrationPhaseRef = useRef<'collecting' | 'ready'>('collecting')
-  const debugRangeRef = useRef({ leftMin: 1, leftMax: 0, rightMin: 1, rightMax: 0, frames: 0 })
+  const blinkStatsRef = useRef({ leftMin: 1, leftMax: 0, rightMin: 1, rightMax: 0, frames: 0 })
+  const blinkDebugReportedRef = useRef(false)
+  const blinkStartedAtRef = useRef(0)
   const [blinkCount, setBlinkCount] = useState(0)
   const [blinkStatus, setBlinkStatus] = useState<BlinkChallengeStatus>('waiting')
   const [statusMsg, setStatusMsg] = useState(
     mockOverride ? `Modo demo: decisão "${mockOverride}"` : 'Aguardando câmera...',
   )
   const [capturing, setCapturing] = useState(false)
-  const [debugStats, setDebugStats] = useState<{
-    leftEAR: number
-    rightEAR: number
-    leftMin: number
-    leftMax: number
-    rightMin: number
-    rightMax: number
-    eyeState: 'open' | 'closed'
-    count: number
-    frames: number
-    phase: 'collecting' | 'ready'
-    baseline: number | null
-    thresholdClosed: number
-  } | null>(null)
+
+  const reportBlinkDebug = useCallback(
+    (outcome: 'completed' | 'timeout') => {
+      if (blinkDebugReportedRef.current) return
+      blinkDebugReportedRef.current = true
+      const stats = blinkStatsRef.current
+      const thresholds = detectorRef.current.getThresholds()
+      const payload = {
+        sessionId,
+        outcome,
+        baseline: thresholds.baseline,
+        thresholdClosed: thresholds.closed,
+        leftMin: stats.leftMin === 1 ? undefined : stats.leftMin,
+        leftMax: stats.leftMax === 0 ? undefined : stats.leftMax,
+        rightMin: stats.rightMin === 1 ? undefined : stats.rightMin,
+        rightMax: stats.rightMax === 0 ? undefined : stats.rightMax,
+        blinkCount: detectorRef.current.getCount(),
+        frames: stats.frames,
+        elapsedMs: Math.round(performance.now() - blinkStartedAtRef.current),
+        userAgent:
+          typeof navigator !== 'undefined' ? navigator.userAgent.slice(0, 256) : undefined,
+      }
+      const clean = Object.fromEntries(
+        Object.entries(payload).filter(([, v]) => v !== undefined),
+      )
+      const url = `${env.VITE_API_URL}/metrics/blink-debug`
+      const body = JSON.stringify(clean)
+      if (typeof navigator !== 'undefined' && navigator.sendBeacon) {
+        const blob = new Blob([body], { type: 'application/json' })
+        navigator.sendBeacon(url, blob)
+      } else {
+        void fetch(url, {
+          method: 'POST',
+          body,
+          headers: { 'Content-Type': 'application/json' },
+          keepalive: true,
+        }).catch(() => {})
+      }
+    },
+    [sessionId],
+  )
 
   useEffect(() => {
     performance.mark('flow-camera-mount')
@@ -109,14 +132,18 @@ export function Camera({
     calibrationSamplesRef.current = []
     calibrationPhaseRef.current = 'collecting'
     detectorRef.current = createBlinkDetector()
-    const startedAt = performance.now()
+    blinkStatsRef.current = { leftMin: 1, leftMax: 0, rightMin: 1, rightMax: 0, frames: 0 }
+    blinkDebugReportedRef.current = false
+    blinkStartedAtRef.current = performance.now()
+    const startedAt = blinkStartedAtRef.current
     let cancelled = false
 
     const tick = async () => {
       if (cancelled) return
       const now = performance.now()
       const elapsed = now - startedAt
-      if (!debugEAR && elapsed > BLINK_TIMEOUT_MS) {
+      if (elapsed > BLINK_TIMEOUT_MS) {
+        reportBlinkDebug('timeout')
         setBlinkStatus('timeout')
         return
       }
@@ -140,6 +167,13 @@ export function Camera({
             const rightEAR = computeEAR(rightPts)
             const avg = (leftEAR + rightEAR) / 2
 
+            const stats = blinkStatsRef.current
+            stats.leftMin = Math.min(stats.leftMin, leftEAR)
+            stats.leftMax = Math.max(stats.leftMax, leftEAR)
+            stats.rightMin = Math.min(stats.rightMin, rightEAR)
+            stats.rightMax = Math.max(stats.rightMax, rightEAR)
+            stats.frames += 1
+
             if (calibrationPhaseRef.current === 'collecting') {
               calibrationSamplesRef.current.push(avg)
               const enoughSamples =
@@ -161,35 +195,8 @@ export function Camera({
             const count = detectorRef.current.getCount()
             setBlinkCount(count)
 
-            if (debugEAR) {
-              const range = debugRangeRef.current
-              range.leftMin = Math.min(range.leftMin, leftEAR)
-              range.leftMax = Math.max(range.leftMax, leftEAR)
-              range.rightMin = Math.min(range.rightMin, rightEAR)
-              range.rightMax = Math.max(range.rightMax, rightEAR)
-              range.frames += 1
-              const thresholds = detectorRef.current.getThresholds()
-              setDebugStats({
-                leftEAR,
-                rightEAR,
-                leftMin: range.leftMin,
-                leftMax: range.leftMax,
-                rightMin: range.rightMin,
-                rightMax: range.rightMax,
-                eyeState: detectorRef.current.getEyeState(),
-                count,
-                frames: range.frames,
-                phase: calibrationPhaseRef.current,
-                baseline: thresholds.baseline,
-                thresholdClosed: thresholds.closed,
-              })
-            }
-
-            if (
-              !debugEAR &&
-              calibrationPhaseRef.current === 'ready' &&
-              count >= REQUIRED_BLINKS
-            ) {
+            if (calibrationPhaseRef.current === 'ready' && count >= REQUIRED_BLINKS) {
+              reportBlinkDebug('completed')
               setBlinkStatus('complete')
               setStatusMsg('Presença confirmada. Centralize seu rosto e tire a foto.')
               return
@@ -206,7 +213,7 @@ export function Camera({
     return () => {
       cancelled = true
     }
-  }, [realPipelineEnabled, stream, human, blinkStatus, debugEAR])
+  }, [realPipelineEnabled, stream, human, blinkStatus, reportBlinkDebug])
 
   async function handleCapture() {
     const video = videoRef.current
@@ -279,61 +286,6 @@ export function Camera({
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center gap-6 p-8">
-      {debugEAR && debugStats && (
-        <div className="fixed left-2 right-2 top-2 z-50 rounded border border-accent-cyan bg-black/85 p-3 font-mono text-xs text-accent-cyan">
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <div className="text-text">
-                L atual:{' '}
-                <span className="text-base text-accent-cyan">
-                  {debugStats.leftEAR.toFixed(3)}
-                </span>
-              </div>
-              <div className="text-text/70">
-                min {debugStats.leftMin.toFixed(3)} / max {debugStats.leftMax.toFixed(3)}
-              </div>
-            </div>
-            <div>
-              <div className="text-text">
-                R atual:{' '}
-                <span className="text-base text-accent-cyan">
-                  {debugStats.rightEAR.toFixed(3)}
-                </span>
-              </div>
-              <div className="text-text/70">
-                min {debugStats.rightMin.toFixed(3)} / max {debugStats.rightMax.toFixed(3)}
-              </div>
-            </div>
-          </div>
-          <div className="mt-2 flex justify-between border-t border-accent-cyan/30 pt-2">
-            <span>
-              estado:{' '}
-              <span
-                className={
-                  debugStats.eyeState === 'closed' ? 'text-accent-pink' : 'text-accent-cyan'
-                }
-              >
-                {debugStats.eyeState}
-              </span>
-            </span>
-            <span>piscadas: {debugStats.count}</span>
-            <span>frames: {debugStats.frames}</span>
-          </div>
-          <div className="mt-1 text-[10px] text-text/60">
-            fase:{' '}
-            <span className="text-text/90">
-              {debugStats.phase === 'collecting' ? 'calibrando' : 'pronto'}
-            </span>
-            {' | '}
-            baseline:{' '}
-            <span className="text-text/90">
-              {debugStats.baseline !== null ? debugStats.baseline.toFixed(3) : 'fallback'}
-            </span>
-            {' | '}
-            corte: EAR &lt; {debugStats.thresholdClosed.toFixed(3)} (média)
-          </div>
-        </div>
-      )}
       <CameraView stream={stream} videoRef={videoRef} />
       <BlinkChallenge
         count={blinkCount}

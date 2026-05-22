@@ -6,6 +6,7 @@ import { mountVerifyJwt } from './routes/verifyJwt.js'
 import { mountWellKnownJwks } from './routes/wellKnownJwks.js'
 import { mountMetricsScores } from './routes/metricsScores.js'
 import { mountMetricsCalibration } from './routes/metricsCalibration.js'
+import { mountMetricsBlinkDebug } from './routes/metricsBlinkDebug.js'
 import type { JwtService } from './services/jwt.js'
 import type { Db } from './services/db.js'
 import type { ServerFeatures } from './services/decisionEngine.js'
@@ -57,6 +58,7 @@ export async function createApp(deps: AppDeps): Promise<Hono> {
     logger: deps.logger,
     compositeThreshold: deps.env.COMPOSITE_THRESHOLD_SHADOW,
   })
+  mountMetricsBlinkDebug(app, { logger: deps.logger })
 
   return app
 }
