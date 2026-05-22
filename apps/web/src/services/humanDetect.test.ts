@@ -4,6 +4,7 @@ import {
   extractClientFeatures,
   createBlinkDetector,
   buildEyeEARPoints,
+  calibrateBaseline,
 } from './humanDetect'
 
 describe('computeEAR', () => {
@@ -189,11 +190,74 @@ describe('createBlinkDetector', () => {
     expect(det.getCount()).toBe(2)
   })
 
-  it('só conta blink se AMBOS olhos fecharem (anti-winking)', () => {
+  it('ignora frame com assimetria grande entre olhos (wink, não blink)', () => {
     const det = createBlinkDetector()
     det.processFrame(0.35, 0.35, 0)
-    det.processFrame(0.1, 0.35, 100)
+    det.processFrame(0.1, 0.35, 100) // razão 3.5x, wink: frame ignorado
     det.processFrame(0.35, 0.35, 200)
     expect(det.getCount()).toBe(0)
+  })
+
+  it('com baseline calibrado, conta blink mesmo quando peak não cruza 0.20', () => {
+    // Caso Magda real: olho aberto ~0.37, blink natural só desce até 0.22.
+    // Threshold absoluto 0.20 perdia, threshold relativo (0.37*0.7=0.259) pega.
+    const det = createBlinkDetector({ baseline: 0.37 })
+    det.processFrame(0.37, 0.37, 0)
+    det.processFrame(0.22, 0.22, 100)
+    det.processFrame(0.37, 0.37, 200)
+    expect(det.getCount()).toBe(1)
+  })
+
+  it('com baseline, conta blink usando média quando um olho mal cruza', () => {
+    // Caso Magda: L=0.19 (cruza absoluto), R=0.21 (não cruza absoluto). Média
+    // = 0.20. Com threshold relativo 0.259, média 0.20 cruza com folga.
+    const det = createBlinkDetector({ baseline: 0.37 })
+    det.processFrame(0.37, 0.37, 0)
+    det.processFrame(0.19, 0.21, 100)
+    det.processFrame(0.37, 0.37, 200)
+    expect(det.getCount()).toBe(1)
+  })
+
+  it('com baseline, ainda rejeita wink (1 olho muito mais aberto que o outro)', () => {
+    const det = createBlinkDetector({ baseline: 0.37 })
+    det.processFrame(0.37, 0.37, 0)
+    det.processFrame(0.05, 0.37, 100) // razão 7.4x, wink
+    det.processFrame(0.37, 0.37, 200)
+    expect(det.getCount()).toBe(0)
+  })
+
+  it('getThresholds expõe os limiares calculados', () => {
+    const semBaseline = createBlinkDetector()
+    expect(semBaseline.getThresholds()).toEqual({ closed: 0.2, open: 0.2, baseline: null })
+
+    const comBaseline = createBlinkDetector({ baseline: 0.4 })
+    const t = comBaseline.getThresholds()
+    expect(t.baseline).toBe(0.4)
+    expect(t.closed).toBeCloseTo(0.28, 5)
+    expect(t.open).toBeCloseTo(0.34, 5)
+  })
+})
+
+describe('calibrateBaseline', () => {
+  it('retorna null com menos de 3 amostras', () => {
+    expect(calibrateBaseline([0.4, 0.4])).toBeNull()
+  })
+
+  it('retorna null se baseline calculado < 0.25 (sinal de erro de captura)', () => {
+    expect(calibrateBaseline([0.15, 0.16, 0.17, 0.18])).toBeNull()
+  })
+
+  it('calcula média da metade superior, ignora amostras baixas (frames piscando)', () => {
+    // 8 amostras: 4 altas (olho aberto), 4 baixas (pessoa piscou durante calib)
+    const samples = [0.4, 0.42, 0.39, 0.41, 0.15, 0.18, 0.2, 0.17]
+    const baseline = calibrateBaseline(samples)
+    expect(baseline).not.toBeNull()
+    expect(baseline!).toBeCloseTo((0.4 + 0.42 + 0.39 + 0.41) / 4, 2)
+  })
+
+  it('aceita amostras consistentemente altas', () => {
+    const baseline = calibrateBaseline([0.38, 0.39, 0.37, 0.4, 0.36, 0.38])
+    expect(baseline).not.toBeNull()
+    expect(baseline!).toBeGreaterThan(0.35)
   })
 })

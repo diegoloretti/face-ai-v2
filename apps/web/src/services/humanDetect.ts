@@ -1,7 +1,11 @@
 import type { ClientFeatures } from '@face-ai/shared'
 
-const EAR_CLOSED_THRESHOLD = 0.2
+const EAR_FALLBACK_THRESHOLD = 0.2
 const BLINK_DEBOUNCE_MS = 500
+const DEFAULT_RATIO_CLOSED = 0.7
+const DEFAULT_RATIO_OPEN = 0.85
+const WINK_ASYMMETRY_LIMIT = 2.0
+const MIN_EYE_FLOOR = 0.001
 
 type Point = [number, number]
 
@@ -85,23 +89,55 @@ export interface BlinkDetector {
   processFrame: (leftEAR: number, rightEAR: number, timestamp: number) => void
   getCount: () => number
   getEyeState: () => EyeState
+  getThresholds: () => { closed: number; open: number; baseline: number | null }
   reset: () => void
 }
 
-export function createBlinkDetector(): BlinkDetector {
+/**
+ * Opções do detector. Sem opções, cai num threshold absoluto de 0.20 (lógica
+ * antiga do paper Soukupová & Čech 2016 - serve como fallback se a calibração
+ * falhar).
+ *
+ * Com `baseline` (EAR aberto médio coletado nos primeiros frames da pessoa),
+ * o detector vira person-relative: considera fechado quando a média dos dois
+ * olhos cai abaixo de `baseline * ratioClosed` (default 0.7, i.e. 30% de queda
+ * do EAR aberto). Isso resolve geometria de olho diferente entre pessoas.
+ */
+export interface BlinkDetectorOptions {
+  baseline?: number
+  ratioClosed?: number
+  ratioOpen?: number
+  fallbackThreshold?: number
+}
+
+export function createBlinkDetector(opts: BlinkDetectorOptions = {}): BlinkDetector {
+  const baseline = opts.baseline ?? null
+  const ratioClosed = opts.ratioClosed ?? DEFAULT_RATIO_CLOSED
+  const ratioOpen = opts.ratioOpen ?? DEFAULT_RATIO_OPEN
+  const fallback = opts.fallbackThreshold ?? EAR_FALLBACK_THRESHOLD
+  const closedThreshold = baseline !== null ? baseline * ratioClosed : fallback
+  const openThreshold = baseline !== null ? baseline * ratioOpen : fallback
+
   let count = 0
   let eyeState: EyeState = 'open'
   let lastBlinkTimestamp = -Infinity
 
   function processFrame(leftEAR: number, rightEAR: number, timestamp: number) {
-    const bothClosed = leftEAR < EAR_CLOSED_THRESHOLD && rightEAR < EAR_CLOSED_THRESHOLD
-    const bothOpen = leftEAR >= EAR_CLOSED_THRESHOLD && rightEAR >= EAR_CLOSED_THRESHOLD
+    // Anti-winking: se a razão entre o olho mais aberto e o mais fechado for
+    // grande demais, é wink (piscar de um olho só) - ignora o frame.
+    const maxEye = Math.max(leftEAR, rightEAR)
+    const minEye = Math.max(Math.min(leftEAR, rightEAR), MIN_EYE_FLOOR)
+    if (maxEye / minEye > WINK_ASYMMETRY_LIMIT) return
 
-    if (eyeState === 'open' && bothClosed) {
+    const avg = (leftEAR + rightEAR) / 2
+    const isClosed = avg < closedThreshold
+    const isOpen = avg >= openThreshold
+
+    if (eyeState === 'open' && isClosed) {
       eyeState = 'closed'
       return
     }
-    if (eyeState === 'closed' && bothOpen) {
+    if (eyeState === 'closed' && isOpen) {
       eyeState = 'open'
       if (timestamp - lastBlinkTimestamp >= BLINK_DEBOUNCE_MS) {
         count += 1
@@ -114,10 +150,29 @@ export function createBlinkDetector(): BlinkDetector {
     processFrame,
     getCount: () => count,
     getEyeState: () => eyeState,
+    getThresholds: () => ({ closed: closedThreshold, open: openThreshold, baseline }),
     reset: () => {
       count = 0
       eyeState = 'open'
       lastBlinkTimestamp = -Infinity
     },
   }
+}
+
+/**
+ * Calcula baseline a partir de amostras do EAR médio. Usa a metade superior
+ * das amostras ordenadas (descarta frames em que a pessoa pode ter piscado
+ * durante a calibração).
+ *
+ * Retorna `null` se o baseline ficar abaixo de 0.25 (sinal de que algo está
+ * errado - rosto fora do quadro, olho meio fechado, etc.) - o caller deve cair
+ * no fallback fixo.
+ */
+export function calibrateBaseline(samples: number[]): number | null {
+  if (samples.length < 3) return null
+  const sorted = [...samples].sort((a, b) => b - a)
+  const topHalf = sorted.slice(0, Math.max(3, Math.ceil(sorted.length / 2)))
+  const baseline = topHalf.reduce((s, v) => s + v, 0) / topHalf.length
+  if (baseline < 0.25) return null
+  return baseline
 }

@@ -7,6 +7,7 @@ import { useCamera } from '../hooks/useCamera'
 import { useHuman } from '../hooks/useHuman'
 import {
   buildEyeEARPoints,
+  calibrateBaseline,
   computeEAR,
   createBlinkDetector,
   extractClientFeatures,
@@ -19,6 +20,9 @@ const REQUIRED_BLINKS = env.VITE_REQUIRE_BLINK ? 2 : 0
 const BLINK_TIMEOUT_MS = 10000
 const DETECT_INTERVAL_MS = 100
 const MOCK_SHORTCUT_DELAY_MS = 800
+const CALIBRATION_MIN_MS = 800
+const CALIBRATION_MAX_MS = 2000
+const CALIBRATION_MIN_SAMPLES = 6
 
 type Point = [number, number]
 
@@ -56,6 +60,8 @@ export function Camera({
   const { human, error: humanError } = useHuman(realPipelineEnabled)
   const videoRef = useRef<HTMLVideoElement | null>(null)
   const detectorRef = useRef(createBlinkDetector())
+  const calibrationSamplesRef = useRef<number[]>([])
+  const calibrationPhaseRef = useRef<'collecting' | 'ready'>('collecting')
   const debugRangeRef = useRef({ leftMin: 1, leftMax: 0, rightMin: 1, rightMax: 0, frames: 0 })
   const [blinkCount, setBlinkCount] = useState(0)
   const [blinkStatus, setBlinkStatus] = useState<BlinkChallengeStatus>('waiting')
@@ -73,6 +79,9 @@ export function Camera({
     eyeState: 'open' | 'closed'
     count: number
     frames: number
+    phase: 'collecting' | 'ready'
+    baseline: number | null
+    thresholdClosed: number
   } | null>(null)
 
   useEffect(() => {
@@ -96,13 +105,17 @@ export function Camera({
       setStatusMsg('Centralize seu rosto e tire a foto.')
       return
     }
-    setStatusMsg('Pisque duas vezes para confirmar.')
+    setStatusMsg('Calibrando, olhe pra câmera com os olhos abertos...')
+    calibrationSamplesRef.current = []
+    calibrationPhaseRef.current = 'collecting'
+    detectorRef.current = createBlinkDetector()
     const startedAt = performance.now()
     let cancelled = false
 
     const tick = async () => {
       if (cancelled) return
-      const elapsed = performance.now() - startedAt
+      const now = performance.now()
+      const elapsed = now - startedAt
       if (!debugEAR && elapsed > BLINK_TIMEOUT_MS) {
         setBlinkStatus('timeout')
         return
@@ -125,9 +138,29 @@ export function Camera({
           if (leftPts && rightPts) {
             const leftEAR = computeEAR(leftPts)
             const rightEAR = computeEAR(rightPts)
-            detectorRef.current.processFrame(leftEAR, rightEAR, performance.now())
+            const avg = (leftEAR + rightEAR) / 2
+
+            if (calibrationPhaseRef.current === 'collecting') {
+              calibrationSamplesRef.current.push(avg)
+              const enoughSamples =
+                calibrationSamplesRef.current.length >= CALIBRATION_MIN_SAMPLES
+              const minTimeReached = elapsed >= CALIBRATION_MIN_MS
+              const maxTimeReached = elapsed >= CALIBRATION_MAX_MS
+              if ((enoughSamples && minTimeReached) || maxTimeReached) {
+                const baseline = calibrateBaseline(calibrationSamplesRef.current)
+                detectorRef.current = createBlinkDetector(
+                  baseline !== null ? { baseline } : {},
+                )
+                calibrationPhaseRef.current = 'ready'
+                setStatusMsg('Pisque duas vezes para confirmar.')
+              }
+            } else {
+              detectorRef.current.processFrame(leftEAR, rightEAR, now)
+            }
+
             const count = detectorRef.current.getCount()
             setBlinkCount(count)
+
             if (debugEAR) {
               const range = debugRangeRef.current
               range.leftMin = Math.min(range.leftMin, leftEAR)
@@ -135,6 +168,7 @@ export function Camera({
               range.rightMin = Math.min(range.rightMin, rightEAR)
               range.rightMax = Math.max(range.rightMax, rightEAR)
               range.frames += 1
+              const thresholds = detectorRef.current.getThresholds()
               setDebugStats({
                 leftEAR,
                 rightEAR,
@@ -145,9 +179,17 @@ export function Camera({
                 eyeState: detectorRef.current.getEyeState(),
                 count,
                 frames: range.frames,
+                phase: calibrationPhaseRef.current,
+                baseline: thresholds.baseline,
+                thresholdClosed: thresholds.closed,
               })
             }
-            if (!debugEAR && count >= REQUIRED_BLINKS) {
+
+            if (
+              !debugEAR &&
+              calibrationPhaseRef.current === 'ready' &&
+              count >= REQUIRED_BLINKS
+            ) {
               setBlinkStatus('complete')
               setStatusMsg('Presença confirmada. Centralize seu rosto e tire a foto.')
               return
@@ -228,6 +270,8 @@ export function Camera({
 
   function handleBlinkRetry() {
     detectorRef.current = createBlinkDetector()
+    calibrationSamplesRef.current = []
+    calibrationPhaseRef.current = 'collecting'
     setBlinkCount(0)
     setStatusMsg('Aguardando câmera...')
     setBlinkStatus('waiting')
@@ -276,7 +320,17 @@ export function Camera({
             <span>frames: {debugStats.frames}</span>
           </div>
           <div className="mt-1 text-[10px] text-text/60">
-            corte de fechado: EAR &lt; 0.20
+            fase:{' '}
+            <span className="text-text/90">
+              {debugStats.phase === 'collecting' ? 'calibrando' : 'pronto'}
+            </span>
+            {' | '}
+            baseline:{' '}
+            <span className="text-text/90">
+              {debugStats.baseline !== null ? debugStats.baseline.toFixed(3) : 'fallback'}
+            </span>
+            {' | '}
+            corte: EAR &lt; {debugStats.thresholdClosed.toFixed(3)} (média)
           </div>
         </div>
       )}
