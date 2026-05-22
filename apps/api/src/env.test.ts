@@ -51,6 +51,24 @@ describe('EnvSchema', () => {
     expect(parsed.ANTISPOOF_THRESHOLD).toBe(0.85)
   })
 
+  it('rejeita COMPOSITE_W_ANTISPOOF NaN como hard error', () => {
+    expect(() =>
+      EnvSchema.parse({ ...baseValid, COMPOSITE_W_ANTISPOOF: 'NaN' }),
+    ).toThrow()
+  })
+
+  it('rejeita COMPOSITE_W_LIVENESS Infinity como hard error', () => {
+    expect(() =>
+      EnvSchema.parse({ ...baseValid, COMPOSITE_W_LIVENESS: 'Infinity' }),
+    ).toThrow()
+  })
+
+  it('rejeita ANTISPOOF_THRESHOLD NaN como hard error', () => {
+    expect(() =>
+      EnvSchema.parse({ ...baseValid, ANTISPOOF_THRESHOLD: 'NaN' }),
+    ).toThrow()
+  })
+
   it('pesos do composite default somam 1.0', () => {
     const parsed = EnvSchema.parse(baseValid)
     const sum =
@@ -60,10 +78,30 @@ describe('EnvSchema', () => {
     expect(Math.abs(sum - 1)).toBeLessThan(1e-6)
   })
 
-  it('rejeita pesos do composite que não somam 1.0', () => {
-    expect(() =>
-      EnvSchema.parse({ ...baseValid, COMPOSITE_W_ANTISPOOF: '0.5' }),
-    ).toThrow(/pesos do composite/)
+  it('aceita pesos do composite somando 1.0 sem warning', () => {
+    const parsed = EnvSchema.parse(baseValid)
+    expect(parsed.COMPOSITE_W_ANTISPOOF).toBe(0.4)
+  })
+
+  it('aceita pesos do composite fora de soma 1.0 (sem hard error - warning e runtime)', () => {
+    const parsed = EnvSchema.parse({ ...baseValid, COMPOSITE_W_ANTISPOOF: '0.5' })
+    expect(parsed.COMPOSITE_W_ANTISPOOF).toBe(0.5)
+    // Spec §3.6: soma fora de tolerancia vira bootLog.warn, nao Zod refine.
+    // Validacao do warning e feita em compositeWeightsCheck.test.ts.
+  })
+
+  it('aceita soma exatamente 1.001 (dentro da tolerancia)', () => {
+    const parsed = EnvSchema.parse({
+      ...baseValid,
+      COMPOSITE_W_ANTISPOOF: '0.401',
+      COMPOSITE_W_LIVENESS: '0.4',
+      COMPOSITE_W_FACE_DETECTION: '0.2',
+    })
+    const sum =
+      parsed.COMPOSITE_W_ANTISPOOF +
+      parsed.COMPOSITE_W_LIVENESS +
+      parsed.COMPOSITE_W_FACE_DETECTION
+    expect(Math.abs(sum - 1)).toBeLessThan(1.5e-3)
   })
 
   it('DECISION_MODE default legacy_and', () => {

@@ -3,7 +3,12 @@ import { z } from 'zod'
 const numberInUnit = z
   .union([z.string(), z.number()])
   .transform((v) => (typeof v === 'string' ? Number(v) : v))
-  .pipe(z.number().min(0).max(1))
+  .pipe(
+    z
+      .number()
+      .refine(Number.isFinite, 'must be finite (no NaN/Infinity)')
+      .refine((n) => n >= 0 && n <= 1, 'must be between 0 and 1'),
+  )
 
 const booleanFromString = z
   .union([z.string(), z.boolean()])
@@ -53,16 +58,6 @@ export const EnvSchema = z
         'ADMIN_METRICS_TOKEN must be at least 32 chars after trim, or unset',
       ),
   })
-  .refine(
-    (env) => {
-      const sum =
-        env.COMPOSITE_W_ANTISPOOF +
-        env.COMPOSITE_W_LIVENESS +
-        env.COMPOSITE_W_FACE_DETECTION
-      return Math.abs(sum - 1) < 1e-6
-    },
-    { message: 'pesos do composite (COMPOSITE_W_*) devem somar 1.0' },
-  )
 
 export type Env = z.infer<typeof EnvSchema>
 

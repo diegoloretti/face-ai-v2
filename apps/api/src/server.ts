@@ -6,9 +6,12 @@ import { buildSupabaseClient, createDb } from './services/db.js'
 import { extractServerFeatures } from './services/humanRunner.js'
 import { checkRateLimit } from './services/rateLimit.js'
 import { createLogger } from './lib/log.js'
+import { checkCompositeWeightsSum } from './lib/compositeWeightsCheck.js'
 
 const env = loadEnv()
 const bootLog = createLogger({ correlationId: 'boot' })
+
+checkCompositeWeightsSum(env, bootLog)
 
 if (env.DECISION_MODE === 'composite') {
   bootLog.warn(
