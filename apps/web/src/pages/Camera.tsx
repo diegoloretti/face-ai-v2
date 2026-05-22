@@ -58,6 +58,10 @@ export function Camera({
   const [capturing, setCapturing] = useState(false)
 
   useEffect(() => {
+    performance.mark('flow-camera-mount')
+  }, [])
+
+  useEffect(() => {
     if (!mockOverride) return
     const timer = setTimeout(() => {
       onResponse(cannedVerifyResponse(mockOverride, sessionId))
@@ -130,6 +134,7 @@ export function Camera({
     if (!video || !human || capturing) return
     setCapturing(true)
     setStatusMsg('Analisando...')
+    performance.mark('flow-capture-start')
     try {
       const result = await human.detect(video)
       const baseFeatures = extractClientFeatures(result)
@@ -151,6 +156,19 @@ export function Camera({
         ),
       )
       const response = await verify(blob, features, sessionId, local)
+      performance.mark('flow-verify-response')
+      try {
+        performance.measure('flow-total', 'flow-start', 'flow-verify-response')
+        performance.measure('flow-camera-to-response', 'flow-camera-mount', 'flow-verify-response')
+        performance.measure('flow-capture-to-response', 'flow-capture-start', 'flow-verify-response')
+        const measures = performance
+          .getEntriesByType('measure')
+          .filter((m) => m.name.startsWith('flow-'))
+        console.log(
+          '[perf-flow]',
+          JSON.stringify(measures.map((m) => ({ name: m.name, ms: Math.round(m.duration) }))),
+        )
+      } catch {}
       onResponse(response)
     } catch (err) {
       setStatusMsg(mapErrorToMessage(err))

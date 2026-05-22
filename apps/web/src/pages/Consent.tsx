@@ -1,3 +1,5 @@
+import { useEffect } from 'react'
+
 export function Consent({
   onAccept,
   onReject,
@@ -7,6 +9,10 @@ export function Consent({
   onReject: () => void
   onViewPrivacy: () => void
 }) {
+  useEffect(() => {
+    performance.mark('flow-start')
+  }, [])
+
   return (
     <main className="flex min-h-screen flex-col items-center justify-center gap-8 p-8">
       <h1 className="font-display text-5xl tracking-tight text-accent-cyan">FACE.AI</h1>
@@ -24,7 +30,10 @@ export function Consent({
       <div className="flex flex-col gap-3 sm:flex-row">
         <button
           type="button"
-          onClick={onAccept}
+          onClick={() => {
+            performance.mark('flow-consent-accepted')
+            onAccept()
+          }}
           className="border border-accent-cyan bg-transparent px-8 py-3 font-mono uppercase tracking-wider text-accent-cyan transition hover:bg-accent-cyan hover:text-bg"
         >
           Aceitar e continuar
