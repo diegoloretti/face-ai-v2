@@ -8,13 +8,13 @@ describe('StatusBadge', () => {
     expect(screen.getByText('Aguardando câmera')).toBeInTheDocument()
   })
 
-  it('aplica classe de cor cyan para tone info', () => {
+  it('aplica data-tone="info" para tone info', () => {
     render(<StatusBadge tone="info">teste</StatusBadge>)
-    expect(screen.getByText('teste')).toHaveClass('text-accent-cyan')
+    expect(screen.getByText('teste')).toHaveAttribute('data-tone', 'info')
   })
 
-  it('aplica classe de cor pink para tone error', () => {
+  it('aplica data-tone="error" para tone error', () => {
     render(<StatusBadge tone="error">erro</StatusBadge>)
-    expect(screen.getByText('erro')).toHaveClass('text-accent-pink')
+    expect(screen.getByText('erro')).toHaveAttribute('data-tone', 'error')
   })
 })

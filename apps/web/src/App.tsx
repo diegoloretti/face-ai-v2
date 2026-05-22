@@ -115,11 +115,15 @@ export function App() {
       const response = state.verifyResponse
       if (!response) {
         return (
-          <main className="flex min-h-screen flex-col items-center justify-center gap-4 p-8 text-center">
-            <StatusBadge tone="error">Estado inválido</StatusBadge>
-            <p className="font-mono text-sm text-muted">
-              Nenhum resultado disponível. Recarregue a página.
-            </p>
+          <main className="screen">
+            <div className="stage">
+              <div className="col col-480" style={{ alignItems: 'center', textAlign: 'center' }}>
+                <StatusBadge tone="error">Estado inválido</StatusBadge>
+                <p className="result-support" style={{ marginTop: 16 }}>
+                  Nenhum resultado disponível. Recarregue a página.
+                </p>
+              </div>
+            </div>
           </main>
         )
       }

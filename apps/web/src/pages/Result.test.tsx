@@ -38,7 +38,7 @@ describe('Result', () => {
         onDownload={() => {}}
       />,
     )
-    expect(screen.getByText(/aprovado/i)).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /verificação aprovada$/i })).toBeInTheDocument()
   })
 
   it('renderiza ApprovalBanner com decisão aprovado_com_declaracao quando declarationConfirmed=true', () => {
@@ -50,7 +50,9 @@ describe('Result', () => {
         onDownload={() => {}}
       />,
     )
-    expect(screen.getByText(/aprovado com declaração/i)).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { name: /verificação aprovada com declaração/i }),
+    ).toBeInTheDocument()
   })
 
   it('renderiza motivo da recusa em PT-BR quando recusado', () => {

@@ -1,6 +1,8 @@
 import type { VerifyResponse } from '@face-ai/shared'
+import { BrandLogo } from '../components/BrandLogo'
 import { ApprovalBanner } from '../components/ApprovalBanner'
 import { DownloadButton } from '../components/DownloadButton'
+import { Icon } from '../components/Icon'
 
 const MOTIVO_PT: Record<string, string> = {
   faixa_etaria_minor: 'Faixa etária estimada abaixo do permitido.',
@@ -27,21 +29,23 @@ export function Result({
   const motivoPt = response.motivo ? (MOTIVO_PT[response.motivo] ?? response.motivo) : null
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-6 p-8 text-center">
-      <ApprovalBanner decisao={effectiveDecisao} />
-      <p className="font-mono text-xs text-muted">
-        Faixa etária: <span className="text-text">{response.faixa_etaria}</span>
-      </p>
-      {motivoPt && <p className="max-w-md font-mono text-sm text-accent-pink">{motivoPt}</p>}
-      <div className="flex flex-col gap-3 sm:flex-row">
-        <DownloadButton onClick={onDownload} />
-        <button
-          type="button"
-          onClick={onRetry}
-          className="border border-border bg-transparent px-6 py-2 font-mono text-muted transition hover:border-accent-cyan hover:text-accent-cyan"
-        >
-          ↺ Nova verificação
-        </button>
+    <main className="screen">
+      <BrandLogo />
+      <div className="stage">
+        <div className="col col-480">
+          <ApprovalBanner decisao={effectiveDecisao} />
+          <p className="result-meta">
+            Faixa etária: <b>{response.faixa_etaria}</b>
+          </p>
+          {motivoPt && <div className="result-reason">{motivoPt}</div>}
+          <div className="center-actions actions-pinned">
+            <button type="button" className="btn btn-secondary btn-lg" onClick={onRetry}>
+              <Icon.refresh style={{ width: 16, height: 16 }} aria-hidden="true" />
+              Nova verificação
+            </button>
+            <DownloadButton onClick={onDownload} />
+          </div>
+        </div>
       </div>
     </main>
   )

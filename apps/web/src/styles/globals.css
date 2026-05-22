@@ -1,20 +1,188 @@
 @import 'tailwindcss';
+@import './screens.css';
 
-@theme {
-  --color-bg: #0a0a0f;
-  --color-surface: #14141f;
-  --color-border: #1e1e2e;
-  --color-text: #e8e8f0;
-  --color-muted: #555570;
-  --color-accent-cyan: #00ffcc;
-  --color-accent-pink: #ff3cac;
+/* =========================================================================
+   BAT LATAM Work Template - Colors & Type
+   Sourced from corporate deck masters (Invoice Reboot, AURA askLisa, BATLens).
+   ========================================================================= */
+
+@font-face {
+  font-family: 'Montserrat';
+  src: url('/fonts/Montserrat-VariableFont_wght.ttf') format('truetype-variations');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Montserrat';
+  src: url('/fonts/Montserrat-Italic-VariableFont_wght.ttf') format('truetype-variations');
+  font-weight: 100 900;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Nunito Sans';
+  src: url('/fonts/NunitoSans-VariableFont_YTLC_opsz_wdth_wght.ttf') format('truetype-variations');
+  font-weight: 200 1000;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Nunito Sans';
+  src: url('/fonts/NunitoSans-Italic-VariableFont_YTLC_opsz_wdth_wght.ttf') format('truetype-variations');
+  font-weight: 200 1000;
+  font-style: italic;
+  font-display: swap;
 }
 
+:root {
+  --bat-navy-900: #0a1f44;
+  --bat-navy-800: #11284f;
+  --bat-navy-700: #1a3a6b;
+  --bat-navy-600: #25528e;
+  --bat-navy-500: #3b6fb6;
+
+  --bat-cyan-600: #0078b4;
+  --bat-cyan-500: #00a7e1;
+  --bat-cyan-400: #34bef0;
+  --bat-cyan-300: #7fd4f0;
+  --bat-cyan-200: #c5e8f7;
+  --bat-cyan-100: #ebf6fc;
+
+  --bat-rainbow-1: #2669b2;
+  --bat-rainbow-2: #00a7e1;
+  --bat-rainbow-3: #ec7c30;
+  --bat-rainbow-4: #f4b91e;
+  --bat-rainbow-5: #2f9b4e;
+  --bat-rainbow-6: #8abc1f;
+  --bat-rainbow-7: #6d3a9c;
+  --bat-rainbow-8: #d13c7a;
+
+  --neutral-0: #ffffff;
+  --neutral-50: #f7f8fa;
+  --neutral-100: #eef1f5;
+  --neutral-200: #dde2ea;
+  --neutral-300: #c2cad6;
+  --neutral-400: #96a1b3;
+  --neutral-500: #6b7588;
+  --neutral-600: #4a5365;
+  --neutral-700: #323946;
+  --neutral-800: #1e232c;
+  --neutral-900: #0f131a;
+
+  --status-success-bg: #e6f4ea;
+  --status-success-border: #2f9b4e;
+  --status-success-ink: #1e6b35;
+
+  --status-warning-bg: #fff4e1;
+  --status-warning-border: #f4b91e;
+  --status-warning-ink: #8a6414;
+
+  --status-danger-bg: #fce8ee;
+  --status-danger-border: #d13c7a;
+  --status-danger-ink: #8f2653;
+
+  --status-info-bg: #ebf6fc;
+  --status-info-border: #00a7e1;
+  --status-info-ink: #075683;
+
+  --fg-1: var(--neutral-900);
+  --fg-2: var(--neutral-700);
+  --fg-3: var(--neutral-500);
+  --fg-4: var(--neutral-400);
+  --fg-on-dark: var(--neutral-0);
+  --fg-on-dark-soft: rgba(255, 255, 255, 0.78);
+  --fg-link: var(--bat-cyan-600);
+
+  --bg-1: var(--neutral-0);
+  --bg-2: var(--neutral-50);
+  --bg-3: var(--neutral-100);
+  --bg-dark: var(--bat-navy-800);
+  --bg-title-band: var(--bat-cyan-500);
+
+  --border-1: var(--neutral-200);
+  --border-2: var(--neutral-300);
+  --border-strong: var(--neutral-400);
+
+  --font-sans: 'Nunito Sans', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-mono: 'Consolas', 'SF Mono', ui-monospace, monospace;
+  --font-display: 'Montserrat', 'Nunito Sans', 'Segoe UI', sans-serif;
+
+  --fs-hero: 72px;
+  --lh-hero: 1.05;
+  --fs-display: 56px;
+  --lh-display: 1.1;
+  --fs-h1: 40px;
+  --lh-h1: 1.15;
+  --fs-h2: 30px;
+  --lh-h2: 1.2;
+  --fs-h3: 22px;
+  --lh-h3: 1.3;
+  --fs-lead: 20px;
+  --lh-lead: 1.45;
+  --fs-body: 17px;
+  --lh-body: 1.5;
+  --fs-small: 14px;
+  --lh-small: 1.45;
+  --fs-micro: 11px;
+  --lh-micro: 1.4;
+
+  --fw-light: 300;
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semi: 600;
+  --fw-bold: 700;
+  --fw-black: 800;
+
+  --ls-kicker: 0.14em;
+  --ls-caps: 0.06em;
+  --ls-tight: -0.01em;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+  --space-9: 96px;
+
+  --radius-xs: 3px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-pill: 999px;
+
+  --shadow-sm: 0 1px 2px rgba(10, 31, 68, 0.06);
+  --shadow-md: 0 2px 8px rgba(10, 31, 68, 0.08), 0 1px 2px rgba(10, 31, 68, 0.04);
+  --shadow-lg: 0 12px 28px rgba(10, 31, 68, 0.1), 0 2px 4px rgba(10, 31, 68, 0.06);
+  --shadow-focus: 0 0 0 3px rgba(0, 167, 225, 0.35);
+
+  --rainbow-bar-height: 18px;
+  --navy-bar-height: 56px;
+}
+
+html {
+  color-scheme: light;
+}
 html,
 body {
-  background: var(--color-bg);
-  color: var(--color-text);
   margin: 0;
-  font-family: 'Space Mono', monospace;
+  padding: 0;
   min-height: 100vh;
+}
+body {
+  font-family: var(--font-sans);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  color: var(--fg-2);
+  background: var(--bg-1);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: var(--bat-cyan-300);
+  color: var(--bat-navy-900);
 }

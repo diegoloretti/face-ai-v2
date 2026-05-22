@@ -1,3 +1,5 @@
+import { Icon } from './Icon'
+
 export type BlinkChallengeStatus = 'waiting' | 'complete' | 'timeout'
 
 export function BlinkChallenge({
@@ -13,13 +15,17 @@ export function BlinkChallenge({
 }) {
   if (status === 'timeout') {
     return (
-      <div className="flex flex-col items-center gap-3 text-center font-mono text-accent-pink">
-        <span>Tempo esgotado. Posicione-se novamente.</span>
+      <div className="cam-warning" role="alert">
+        <Icon.warn className="cam-warning-icon" />
+        <div style={{ flex: 1 }}>
+          <div className="cam-warning-text">Tempo esgotado. Posicione-se novamente.</div>
+        </div>
         {onRetry && (
           <button
             type="button"
+            className="btn btn-secondary"
+            style={{ height: 36, padding: '0 14px', fontSize: 14 }}
             onClick={onRetry}
-            className="border border-accent-pink bg-transparent px-6 py-2 font-mono uppercase tracking-wider text-accent-pink transition hover:bg-accent-pink hover:text-bg"
           >
             Tentar de novo
           </button>
@@ -27,14 +33,13 @@ export function BlinkChallenge({
       </div>
     )
   }
+
   return (
-    <div className="flex flex-col items-center gap-2 text-center">
-      <p className="font-display text-lg text-text">
-        Pisque duas vezes para confirmarmos sua presença.
-      </p>
-      <p className="font-mono text-2xl text-accent-cyan">
+    <div className="blink-counter" data-flash={count > 0 ? 'true' : 'false'}>
+      <span>Pisque duas vezes</span>
+      <span className="blink-counter-num">
         {status === 'complete' ? '✓' : `${count} / ${required}`}
-      </p>
+      </span>
     </div>
   )
 }

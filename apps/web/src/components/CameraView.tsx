@@ -1,15 +1,23 @@
 import { useEffect, type RefObject } from 'react'
+import { FaceOval, CalibratingRing } from './FaceOval'
+
+type CameraState =
+  | 'permission_pending'
+  | 'camera_error'
+  | 'calibrating'
+  | 'blink_active'
+  | 'blink_timeout'
+  | 'blink_complete'
+  | 'capturing'
 
 export function CameraView({
   stream,
   videoRef,
-  width = 640,
-  height = 480,
+  state = 'blink_active',
 }: {
   stream: MediaStream | null
   videoRef: RefObject<HTMLVideoElement | null>
-  width?: number
-  height?: number
+  state?: CameraState
 }) {
   useEffect(() => {
     const video = videoRef.current
@@ -24,33 +32,24 @@ export function CameraView({
     }
   }, [stream, videoRef])
 
+  const showOval = state !== 'permission_pending' && state !== 'camera_error'
+  const showSkeleton = state === 'permission_pending'
+  const showCalibratingRing = state === 'calibrating'
+  const showShimmer = state === 'capturing'
+
   return (
-    <div
-      className="relative overflow-hidden rounded-2xl border border-border bg-black"
-      style={{ width, height }}
-    >
-      <video
-        ref={videoRef}
-        className="h-full w-full"
-        style={{ transform: 'scaleX(-1)' }}
-        muted
-        playsInline
-      />
-      <svg
-        className="pointer-events-none absolute inset-0 h-full w-full"
-        viewBox={`0 0 ${width} ${height}`}
-      >
-        <ellipse
-          cx={width / 2}
-          cy={height / 2}
-          rx={width * 0.35}
-          ry={height * 0.45}
-          fill="none"
-          stroke="rgba(0,255,204,0.6)"
-          strokeWidth="2"
-          strokeDasharray="6 6"
-        />
-      </svg>
+    <div className="camera-frame" data-state={state}>
+      <div className="camera-feed">
+        <video ref={videoRef} muted playsInline />
+      </div>
+      {showSkeleton && (
+        <div className="cam-skeleton">
+          <div className="cam-skeleton-ring" />
+        </div>
+      )}
+      {showOval && <FaceOval />}
+      {showCalibratingRing && <CalibratingRing />}
+      {showShimmer && <div className="cam-shimmer" />}
     </div>
   )
 }

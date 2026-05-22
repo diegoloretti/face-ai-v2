@@ -1,3 +1,6 @@
+import { BrandLogo } from '../components/BrandLogo'
+import { Icon } from '../components/Icon'
+
 export type ThankYouReason = 'initial_refusal' | 'declaration_refused'
 
 const MESSAGES: Record<ThankYouReason, string> = {
@@ -7,9 +10,21 @@ const MESSAGES: Record<ThankYouReason, string> = {
 
 export function ThankYou({ reason }: { reason: ThankYouReason }) {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-6 p-8 text-center">
-      <h1 className="font-display text-4xl text-accent-cyan">Obrigado pela visita.</h1>
-      <p className="max-w-md font-mono text-sm text-muted">{MESSAGES[reason]}</p>
+    <main className="screen">
+      <BrandLogo />
+      <div className="stage">
+        <div className="col col-480" style={{ alignItems: 'center', textAlign: 'center' }}>
+          <div className="thanks-glyph">
+            <Icon.thanks />
+          </div>
+          <h1 className="result-headline tone-denied" style={{ marginBottom: 12 }}>
+            Obrigado pela visita.
+          </h1>
+          <p className="result-support" style={{ maxWidth: 360 }}>
+            {MESSAGES[reason]}
+          </p>
+        </div>
+      </div>
     </main>
   )
 }

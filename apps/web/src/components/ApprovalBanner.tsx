@@ -1,23 +1,32 @@
+import { Icon } from './Icon'
+
 type Decisao = 'aprovado' | 'recusado' | 'requer_declaracao' | 'aprovado_com_declaracao'
 
-const LABEL: Record<Decisao, string> = {
-  aprovado: 'APROVADO',
-  recusado: 'RECUSADO',
-  requer_declaracao: 'REQUER DECLARAÇÃO',
-  aprovado_com_declaracao: 'APROVADO COM DECLARAÇÃO',
+const HEADLINE: Record<Decisao, string> = {
+  aprovado: 'Verificação aprovada',
+  aprovado_com_declaracao: 'Verificação aprovada com declaração',
+  recusado: 'Verificação não aprovada',
+  requer_declaracao: 'Verificação não aprovada',
 }
 
-const COLOR: Record<Decisao, string> = {
-  aprovado: 'border-accent-cyan text-accent-cyan',
-  recusado: 'border-accent-pink text-accent-pink',
-  requer_declaracao: 'border-accent-pink text-accent-pink',
-  aprovado_com_declaracao: 'border-accent-cyan text-accent-cyan',
+const SUPPORT: Partial<Record<Decisao, string>> = {
+  aprovado: 'Você está liberado.',
+  aprovado_com_declaracao: 'Obrigado por confirmar.',
 }
 
 export function ApprovalBanner({ decisao }: { decisao: Decisao }) {
+  const isApproved = decisao === 'aprovado' || decisao === 'aprovado_com_declaracao'
   return (
-    <div className={`border-2 px-6 py-4 font-display text-3xl tracking-widest ${COLOR[decisao]}`}>
-      {LABEL[decisao]}
+    <div>
+      <div
+        className={`result-glyph ${isApproved ? 'result-glyph-approved' : 'result-glyph-denied'}`}
+      >
+        {isApproved ? <Icon.confirmation /> : <Icon.neutral />}
+      </div>
+      <h1 className={`result-headline ${isApproved ? 'tone-approved' : 'tone-denied'}`}>
+        {HEADLINE[decisao]}
+      </h1>
+      {SUPPORT[decisao] && <p className="result-support">{SUPPORT[decisao]}</p>}
     </div>
   )
 }

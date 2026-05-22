@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { BrandLogo } from '../components/BrandLogo'
 
 export function Consent({
   onAccept,
@@ -14,37 +15,39 @@ export function Consent({
   }, [])
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-8 p-8">
-      <h1 className="font-display text-5xl tracking-tight text-accent-cyan">FACE.AI</h1>
-      <p className="max-w-md text-center font-mono text-text">
-        Verificação de idade por inteligência artificial.
-      </p>
-      <p className="max-w-md text-center font-mono text-sm text-muted">
-        Sua câmera será usada apenas para estimar sua faixa etária. Nenhuma foto é armazenada. Você
-        pode recusar ou ler nossa{' '}
-        <button type="button" onClick={onViewPrivacy} className="underline hover:text-accent-cyan">
-          política de privacidade
-        </button>{' '}
-        antes de continuar.
-      </p>
-      <div className="flex flex-col gap-3 sm:flex-row">
-        <button
-          type="button"
-          onClick={() => {
-            performance.mark('flow-consent-accepted')
-            onAccept()
-          }}
-          className="border border-accent-cyan bg-transparent px-8 py-3 font-mono uppercase tracking-wider text-accent-cyan transition hover:bg-accent-cyan hover:text-bg"
-        >
-          Aceitar e continuar
-        </button>
-        <button
-          type="button"
-          onClick={onReject}
-          className="border border-border bg-transparent px-8 py-3 font-mono uppercase tracking-wider text-muted transition hover:border-accent-pink hover:text-accent-pink"
-        >
-          Recusar
-        </button>
+    <main className="screen">
+      <BrandLogo />
+      <div className="stage">
+        <div className="col col-480">
+          <p className="kicker">Bem-vindo</p>
+          <h1 className="h1">Verificação de idade</h1>
+          <p className="subtitle">
+            Use sua câmera para confirmar que você atende ao requisito de idade.
+          </p>
+          <p className="body-text">
+            Sua câmera será usada apenas para estimar sua faixa etária. Nenhuma foto é
+            armazenada. Você pode recusar ou ler nossa{' '}
+            <button type="button" className="link" onClick={onViewPrivacy}>
+              política de privacidade
+            </button>{' '}
+            antes de continuar.
+          </p>
+          <div className="actions actions-pinned">
+            <button type="button" className="btn btn-secondary btn-lg" onClick={onReject}>
+              Recusar
+            </button>
+            <button
+              type="button"
+              className="btn btn-primary btn-lg"
+              onClick={() => {
+                performance.mark('flow-consent-accepted')
+                onAccept()
+              }}
+            >
+              Aceitar e continuar
+            </button>
+          </div>
+        </div>
       </div>
     </main>
   )

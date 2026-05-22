@@ -1,3 +1,5 @@
+import { BrandLogo } from '../components/BrandLogo'
+
 const TIPS = [
   'Garanta boa iluminação no ambiente.',
   'Mantenha o rosto centralizado no oval.',
@@ -8,23 +10,30 @@ const TIPS = [
 
 export function Instructions({ onProceed }: { onProceed: () => void }) {
   return (
-    <main className="mx-auto flex min-h-screen max-w-xl flex-col items-center justify-center gap-6 p-8 text-center">
-      <h1 className="font-display text-3xl text-accent-cyan">Antes de começar</h1>
-      <ul className="space-y-3 text-left font-mono text-sm text-text">
-        {TIPS.map((tip) => (
-          <li key={tip} className="flex gap-3">
-            <span className="text-accent-cyan">›</span>
-            <span>{tip}</span>
-          </li>
-        ))}
-      </ul>
-      <button
-        type="button"
-        onClick={onProceed}
-        className="border border-accent-cyan bg-transparent px-8 py-3 font-mono uppercase tracking-wider text-accent-cyan transition hover:bg-accent-cyan hover:text-bg"
-      >
-        Continuar
-      </button>
+    <main className="screen">
+      <BrandLogo />
+      <div className="stage">
+        <div className="col col-560">
+          <p className="kicker">Etapa 1 de 3</p>
+          <h1 className="h1">Antes de começar</h1>
+          <p className="subtitle">
+            Leia rapidamente as recomendações abaixo para uma verificação sem interrupções.
+          </p>
+          <ul className="checklist">
+            {TIPS.map((tip, i) => (
+              <li key={tip} className="checklist-item">
+                <span className="checklist-glyph">{i + 1}</span>
+                <span>{tip}</span>
+              </li>
+            ))}
+          </ul>
+          <div className="actions actions-pinned">
+            <button type="button" className="btn btn-primary btn-lg" onClick={onProceed}>
+              Continuar
+            </button>
+          </div>
+        </div>
+      </div>
     </main>
   )
 }

@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { ClientFeatures, VerifyResponse } from '@face-ai/shared'
+import { BrandLogo } from '../components/BrandLogo'
 import { CameraView } from '../components/CameraView'
-import { BlinkChallenge, type BlinkChallengeStatus } from '../components/BlinkChallenge'
-import { StatusBadge } from '../components/StatusBadge'
+import { Icon } from '../components/Icon'
 import { useCamera } from '../hooks/useCamera'
 import { useHuman } from '../hooks/useHuman'
 import {
@@ -25,6 +25,15 @@ const CALIBRATION_MAX_MS = 2000
 const CALIBRATION_MIN_SAMPLES = 6
 
 type Point = [number, number]
+
+type CameraUiState =
+  | 'permission_pending'
+  | 'camera_error'
+  | 'calibrating'
+  | 'blink_active'
+  | 'blink_timeout'
+  | 'blink_complete'
+  | 'capturing'
 
 function toPoints2D(landmarks: unknown): Point[] | null {
   if (!Array.isArray(landmarks) || landmarks.length === 0) return null
@@ -60,10 +69,8 @@ export function Camera({
   const blinkDebugReportedRef = useRef(false)
   const blinkStartedAtRef = useRef(0)
   const [blinkCount, setBlinkCount] = useState(0)
-  const [blinkStatus, setBlinkStatus] = useState<BlinkChallengeStatus>('waiting')
-  const [statusMsg, setStatusMsg] = useState(
-    mockOverride ? `Modo demo: decisão "${mockOverride}"` : 'Aguardando câmera...',
-  )
+  const [blinkStatus, setBlinkStatus] = useState<'waiting' | 'complete' | 'timeout'>('waiting')
+  const [calibrationPhase, setCalibrationPhase] = useState<'collecting' | 'ready'>('collecting')
   const [capturing, setCapturing] = useState(false)
 
   const reportBlinkDebug = useCallback(
@@ -122,15 +129,13 @@ export function Camera({
   useEffect(() => {
     if (!realPipelineEnabled) return
     if (!stream || !human || blinkStatus !== 'waiting') return
-    // Pular gate quando blink desligado via env (mantem telemetria coletando blinkCount=0).
     if (REQUIRED_BLINKS === 0) {
       setBlinkStatus('complete')
-      setStatusMsg('Centralize seu rosto e tire a foto.')
       return
     }
-    setStatusMsg('Calibrando, olhe pra câmera com os olhos abertos...')
     calibrationSamplesRef.current = []
     calibrationPhaseRef.current = 'collecting'
+    setCalibrationPhase('collecting')
     detectorRef.current = createBlinkDetector()
     blinkStatsRef.current = { leftMin: 1, leftMax: 0, rightMin: 1, rightMax: 0, frames: 0 }
     blinkDebugReportedRef.current = false
@@ -186,7 +191,7 @@ export function Camera({
                   baseline !== null ? { baseline } : {},
                 )
                 calibrationPhaseRef.current = 'ready'
-                setStatusMsg('Pisque duas vezes para confirmar.')
+                setCalibrationPhase('ready')
               }
             } else {
               detectorRef.current.processFrame(leftEAR, rightEAR, now)
@@ -198,13 +203,12 @@ export function Camera({
             if (calibrationPhaseRef.current === 'ready' && count >= REQUIRED_BLINKS) {
               reportBlinkDebug('completed')
               setBlinkStatus('complete')
-              setStatusMsg('Presença confirmada. Centralize seu rosto e tire a foto.')
               return
             }
           }
         }
-      } catch (err) {
-        setStatusMsg(mapErrorToMessage(err))
+      } catch {
+        // Detection errors during liveness do not stop the loop; surfaced via fatalError if persistent.
       }
       setTimeout(tick, DETECT_INTERVAL_MS)
     }
@@ -219,7 +223,6 @@ export function Camera({
     const video = videoRef.current
     if (!video || !human || capturing) return
     setCapturing(true)
-    setStatusMsg('Analisando...')
     performance.mark('flow-capture-start')
     try {
       const result = await human.detect(video)
@@ -246,7 +249,11 @@ export function Camera({
       try {
         performance.measure('flow-total', 'flow-start', 'flow-verify-response')
         performance.measure('flow-camera-to-response', 'flow-camera-mount', 'flow-verify-response')
-        performance.measure('flow-capture-to-response', 'flow-capture-start', 'flow-verify-response')
+        performance.measure(
+          'flow-capture-to-response',
+          'flow-capture-start',
+          'flow-verify-response',
+        )
         const measures = performance
           .getEntriesByType('measure')
           .filter((m) => m.name.startsWith('flow-'))
@@ -256,54 +263,125 @@ export function Camera({
         )
       } catch {
         // performance.measure throws if a mark is absent (e.g. direct entry into Camera without Consent).
-        // Silent on purpose: instrumentation is best-effort.
       }
       onResponse(response)
-    } catch (err) {
-      setStatusMsg(mapErrorToMessage(err))
+    } catch {
       setCapturing(false)
     }
-  }
-
-  const fatalError = cameraError ?? humanError
-  if (fatalError) {
-    return (
-      <main className="flex min-h-screen flex-col items-center justify-center gap-4 p-8 text-center">
-        <StatusBadge tone="error">Erro</StatusBadge>
-        <p className="font-mono text-sm text-accent-pink">{mapErrorToMessage(fatalError)}</p>
-      </main>
-    )
   }
 
   function handleBlinkRetry() {
     detectorRef.current = createBlinkDetector()
     calibrationSamplesRef.current = []
     calibrationPhaseRef.current = 'collecting'
+    setCalibrationPhase('collecting')
     setBlinkCount(0)
-    setStatusMsg('Aguardando câmera...')
     setBlinkStatus('waiting')
   }
 
+  const fatalError = cameraError ?? humanError
+
+  const uiState: CameraUiState = (() => {
+    if (fatalError) return 'camera_error'
+    if (capturing) return 'capturing'
+    if (blinkStatus === 'complete') return 'blink_complete'
+    if (blinkStatus === 'timeout') return 'blink_timeout'
+    if (!stream || !human) return 'permission_pending'
+    if (calibrationPhase === 'collecting') return 'calibrating'
+    return 'blink_active'
+  })()
+
+  const STATE_COPY: Record<CameraUiState, string> = {
+    permission_pending: 'Aguardando permissão da câmera...',
+    camera_error: 'Não conseguimos acessar a câmera.',
+    calibrating: 'Calibrando, olhe pra câmera com os olhos abertos...',
+    blink_active: 'Pisque duas vezes para confirmar.',
+    blink_timeout: 'Tempo esgotado. Posicione-se novamente.',
+    blink_complete: 'Presença confirmada. Centralize seu rosto e tire a foto.',
+    capturing: 'Analisando...',
+  }
+
+  const STATE_TONE: Record<CameraUiState, 'info' | 'warn' | 'ok' | 'error'> = {
+    permission_pending: 'info',
+    camera_error: 'error',
+    calibrating: 'info',
+    blink_active: 'info',
+    blink_timeout: 'warn',
+    blink_complete: 'ok',
+    capturing: 'info',
+  }
+
+  const statusMsg = fatalError ? mapErrorToMessage(fatalError) : STATE_COPY[uiState]
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-6 p-8">
-      <CameraView stream={stream} videoRef={videoRef} />
-      <BlinkChallenge
-        count={blinkCount}
-        required={REQUIRED_BLINKS}
-        status={blinkStatus}
-        onRetry={blinkStatus === 'timeout' ? handleBlinkRetry : undefined}
-      />
-      <StatusBadge tone={blinkStatus === 'timeout' ? 'error' : 'info'}>{statusMsg}</StatusBadge>
-      {blinkStatus === 'complete' && (
-        <button
-          type="button"
-          onClick={handleCapture}
-          disabled={capturing}
-          className="border border-accent-cyan bg-transparent px-8 py-3 font-mono uppercase tracking-wider text-accent-cyan transition hover:bg-accent-cyan hover:text-bg disabled:opacity-40"
-        >
-          {capturing ? 'Analisando...' : 'Tirar foto'}
-        </button>
-      )}
+    <main className="screen">
+      <BrandLogo />
+      <div className="stage">
+        <div className="cam-stack">
+          <CameraView stream={stream} videoRef={videoRef} state={uiState} />
+
+          {uiState === 'camera_error' ? (
+            <div className="cam-warning" role="alert">
+              <Icon.warn className="cam-warning-icon" />
+              <div style={{ flex: 1 }}>
+                <div className="cam-warning-text">Não conseguimos acessar a câmera</div>
+                <div className="cam-warning-hint">{statusMsg}</div>
+              </div>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                style={{ height: 36, padding: '0 14px', fontSize: 14 }}
+                onClick={() => window.location.reload()}
+              >
+                Tentar de novo
+              </button>
+            </div>
+          ) : (
+            <div className={`status-row status-${STATE_TONE[uiState]}`} aria-live="polite">
+              <span className="status-dot" aria-hidden="true" />
+              <span className="status-text">{statusMsg}</span>
+            </div>
+          )}
+
+          {uiState === 'blink_active' && (
+            <div className="blink-counter" data-flash={blinkCount > 0 ? 'true' : 'false'}>
+              <span>Piscadas</span>
+              <span className="blink-counter-num">
+                {blinkCount} / {REQUIRED_BLINKS}
+              </span>
+            </div>
+          )}
+
+          {uiState === 'blink_timeout' && (
+            <div style={{ marginTop: 16 }}>
+              <button
+                type="button"
+                className="btn btn-secondary btn-lg"
+                onClick={handleBlinkRetry}
+              >
+                <Icon.refresh style={{ width: 16, height: 16 }} />
+                Tentar de novo
+              </button>
+            </div>
+          )}
+
+          {(uiState === 'blink_complete' || uiState === 'capturing') && (
+            <div className="capture-btn-wrap">
+              <button
+                type="button"
+                className="btn btn-primary btn-lg btn-block"
+                style={{ maxWidth: 320 }}
+                disabled={uiState === 'capturing'}
+                aria-disabled={uiState === 'capturing'}
+                onClick={handleCapture}
+              >
+                {uiState === 'capturing' && <span className="spinner" aria-hidden="true" />}
+                {uiState === 'capturing' ? 'Analisando...' : 'Tirar foto'}
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
     </main>
   )
 }
