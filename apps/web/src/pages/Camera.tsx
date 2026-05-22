@@ -45,17 +45,35 @@ export function Camera({
 }) {
   const mockOverride = useMemo(() => (env.VITE_USE_MOCK_API ? getMockDecisionOverride() : null), [])
   const realPipelineEnabled = mockOverride === null
+  const debugEAR = useMemo(
+    () =>
+      typeof window !== 'undefined' &&
+      new URLSearchParams(window.location.search).has('debug-ear'),
+    [],
+  )
 
   const { stream, error: cameraError } = useCamera(realPipelineEnabled)
   const { human, error: humanError } = useHuman(realPipelineEnabled)
   const videoRef = useRef<HTMLVideoElement | null>(null)
   const detectorRef = useRef(createBlinkDetector())
+  const debugRangeRef = useRef({ leftMin: 1, leftMax: 0, rightMin: 1, rightMax: 0, frames: 0 })
   const [blinkCount, setBlinkCount] = useState(0)
   const [blinkStatus, setBlinkStatus] = useState<BlinkChallengeStatus>('waiting')
   const [statusMsg, setStatusMsg] = useState(
     mockOverride ? `Modo demo: decisão "${mockOverride}"` : 'Aguardando câmera...',
   )
   const [capturing, setCapturing] = useState(false)
+  const [debugStats, setDebugStats] = useState<{
+    leftEAR: number
+    rightEAR: number
+    leftMin: number
+    leftMax: number
+    rightMin: number
+    rightMax: number
+    eyeState: 'open' | 'closed'
+    count: number
+    frames: number
+  } | null>(null)
 
   useEffect(() => {
     performance.mark('flow-camera-mount')
@@ -85,7 +103,7 @@ export function Camera({
     const tick = async () => {
       if (cancelled) return
       const elapsed = performance.now() - startedAt
-      if (elapsed > BLINK_TIMEOUT_MS) {
+      if (!debugEAR && elapsed > BLINK_TIMEOUT_MS) {
         setBlinkStatus('timeout')
         return
       }
@@ -110,7 +128,26 @@ export function Camera({
             detectorRef.current.processFrame(leftEAR, rightEAR, performance.now())
             const count = detectorRef.current.getCount()
             setBlinkCount(count)
-            if (count >= REQUIRED_BLINKS) {
+            if (debugEAR) {
+              const range = debugRangeRef.current
+              range.leftMin = Math.min(range.leftMin, leftEAR)
+              range.leftMax = Math.max(range.leftMax, leftEAR)
+              range.rightMin = Math.min(range.rightMin, rightEAR)
+              range.rightMax = Math.max(range.rightMax, rightEAR)
+              range.frames += 1
+              setDebugStats({
+                leftEAR,
+                rightEAR,
+                leftMin: range.leftMin,
+                leftMax: range.leftMax,
+                rightMin: range.rightMin,
+                rightMax: range.rightMax,
+                eyeState: detectorRef.current.getEyeState(),
+                count,
+                frames: range.frames,
+              })
+            }
+            if (!debugEAR && count >= REQUIRED_BLINKS) {
               setBlinkStatus('complete')
               setStatusMsg('Presença confirmada. Centralize seu rosto e tire a foto.')
               return
@@ -127,7 +164,7 @@ export function Camera({
     return () => {
       cancelled = true
     }
-  }, [realPipelineEnabled, stream, human, blinkStatus])
+  }, [realPipelineEnabled, stream, human, blinkStatus, debugEAR])
 
   async function handleCapture() {
     const video = videoRef.current
@@ -198,6 +235,51 @@ export function Camera({
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center gap-6 p-8">
+      {debugEAR && debugStats && (
+        <div className="fixed left-2 right-2 top-2 z-50 rounded border border-accent-cyan bg-black/85 p-3 font-mono text-xs text-accent-cyan">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <div className="text-text">
+                L atual:{' '}
+                <span className="text-base text-accent-cyan">
+                  {debugStats.leftEAR.toFixed(3)}
+                </span>
+              </div>
+              <div className="text-text/70">
+                min {debugStats.leftMin.toFixed(3)} / max {debugStats.leftMax.toFixed(3)}
+              </div>
+            </div>
+            <div>
+              <div className="text-text">
+                R atual:{' '}
+                <span className="text-base text-accent-cyan">
+                  {debugStats.rightEAR.toFixed(3)}
+                </span>
+              </div>
+              <div className="text-text/70">
+                min {debugStats.rightMin.toFixed(3)} / max {debugStats.rightMax.toFixed(3)}
+              </div>
+            </div>
+          </div>
+          <div className="mt-2 flex justify-between border-t border-accent-cyan/30 pt-2">
+            <span>
+              estado:{' '}
+              <span
+                className={
+                  debugStats.eyeState === 'closed' ? 'text-accent-pink' : 'text-accent-cyan'
+                }
+              >
+                {debugStats.eyeState}
+              </span>
+            </span>
+            <span>piscadas: {debugStats.count}</span>
+            <span>frames: {debugStats.frames}</span>
+          </div>
+          <div className="mt-1 text-[10px] text-text/60">
+            corte de fechado: EAR &lt; 0.20
+          </div>
+        </div>
+      )}
       <CameraView stream={stream} videoRef={videoRef} />
       <BlinkChallenge
         count={blinkCount}
