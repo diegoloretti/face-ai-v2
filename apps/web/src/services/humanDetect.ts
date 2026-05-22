@@ -4,6 +4,9 @@ const EAR_FALLBACK_THRESHOLD = 0.2
 const BLINK_DEBOUNCE_MS = 500
 const DEFAULT_RATIO_CLOSED = 0.7
 const DEFAULT_RATIO_OPEN = 0.85
+const VALLEY_RATIO_CLOSED = 0.78
+const VALLEY_RATIO_OPEN = 0.88
+const VALLEY_HISTORY_SIZE = 5
 const WINK_ASYMMETRY_LIMIT = 2.0
 const MIN_EYE_FLOOR = 0.001
 
@@ -117,10 +120,36 @@ export function createBlinkDetector(opts: BlinkDetectorOptions = {}): BlinkDetec
   const fallback = opts.fallbackThreshold ?? EAR_FALLBACK_THRESHOLD
   const closedThreshold = baseline !== null ? baseline * ratioClosed : fallback
   const openThreshold = baseline !== null ? baseline * ratioOpen : fallback
+  const valleyClosedThreshold = baseline !== null ? baseline * VALLEY_RATIO_CLOSED : null
+  const valleyOpenThreshold = baseline !== null ? baseline * VALLEY_RATIO_OPEN : null
 
   let count = 0
   let eyeState: EyeState = 'open'
   let lastBlinkTimestamp = -Infinity
+  let history: Array<{ avg: number; timestamp: number }> = []
+
+  function registerBlink(timestamp: number) {
+    if (timestamp - lastBlinkTimestamp < BLINK_DEBOUNCE_MS) return false
+    count += 1
+    lastBlinkTimestamp = timestamp
+    return true
+  }
+
+  function detectValley(currentTimestamp: number): boolean {
+    // Detecção por vale: olha a trajetória das últimas amostras pra capturar
+    // piscadas rápidas que entraram entre dois "olhares" do sampling. Requer
+    // baseline calibrado (precisa do ratio relativo pra ser confiável).
+    if (valleyClosedThreshold === null || valleyOpenThreshold === null) return false
+    if (history.length < 3) return false
+    const oldest = history[0]
+    const newest = history[history.length - 1]
+    const middle = history.slice(1, -1)
+    const oldestOpen = oldest.avg >= valleyOpenThreshold
+    const newestOpen = newest.avg >= valleyOpenThreshold
+    const middleDipped = middle.some((f) => f.avg < valleyClosedThreshold)
+    if (!oldestOpen || !newestOpen || !middleDipped) return false
+    return registerBlink(currentTimestamp)
+  }
 
   function processFrame(leftEAR: number, rightEAR: number, timestamp: number) {
     // Anti-winking: se a razão entre o olho mais aberto e o mais fechado for
@@ -130,19 +159,30 @@ export function createBlinkDetector(opts: BlinkDetectorOptions = {}): BlinkDetec
     if (maxEye / minEye > WINK_ASYMMETRY_LIMIT) return
 
     const avg = (leftEAR + rightEAR) / 2
+    history.push({ avg, timestamp })
+    if (history.length > VALLEY_HISTORY_SIZE) history.shift()
+
     const isClosed = avg < closedThreshold
     const isOpen = avg >= openThreshold
 
+    // Critério A: state machine clássica (open -> closed -> open).
     if (eyeState === 'open' && isClosed) {
       eyeState = 'closed'
       return
     }
     if (eyeState === 'closed' && isOpen) {
       eyeState = 'open'
-      if (timestamp - lastBlinkTimestamp >= BLINK_DEBOUNCE_MS) {
-        count += 1
-        lastBlinkTimestamp = timestamp
+      if (registerBlink(timestamp)) {
+        history = []
       }
+      return
+    }
+
+    // Critério B: vale na trajetória recente. Pega piscadas rápidas onde
+    // nenhum frame individual caiu claramente abaixo do closedThreshold (mas
+    // o conjunto mostra subiu-mergulhou-subiu).
+    if (eyeState === 'open' && detectValley(timestamp)) {
+      history = []
     }
   }
 
@@ -155,6 +195,7 @@ export function createBlinkDetector(opts: BlinkDetectorOptions = {}): BlinkDetec
       count = 0
       eyeState = 'open'
       lastBlinkTimestamp = -Infinity
+      history = []
     },
   }
 }

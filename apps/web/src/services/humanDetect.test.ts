@@ -226,6 +226,56 @@ describe('createBlinkDetector', () => {
     expect(det.getCount()).toBe(0)
   })
 
+  it('detecta piscada rápida via vale (frames intermediários sem cruzar closedThreshold limpo)', () => {
+    // Caso piscada rápida: sampling não capturou peak fechado, mas a trajetória
+    // mostra subiu-mergulhou-subiu. Baseline 0.40, closedThreshold = 0.28,
+    // valleyClosedThreshold = 0.312. Os frames intermediários caem em 0.30
+    // (cruzam valley mas não closed clássico).
+    const det = createBlinkDetector({ baseline: 0.4 })
+    det.processFrame(0.4, 0.4, 0) // aberto
+    det.processFrame(0.3, 0.3, 80) // meio do mergulho (>0.28, não cruza clássico)
+    det.processFrame(0.4, 0.4, 160) // voltou aberto
+    expect(det.getCount()).toBe(1)
+  })
+
+  it('vale exige baseline calibrado (sem baseline, só state machine clássica)', () => {
+    const det = createBlinkDetector()
+    det.processFrame(0.4, 0.4, 0)
+    det.processFrame(0.3, 0.3, 80) // não cruza 0.20 fallback
+    det.processFrame(0.4, 0.4, 160)
+    expect(det.getCount()).toBe(0)
+  })
+
+  it('vale não conta se o frame mais antigo não estava claramente aberto', () => {
+    // Sem fase "olho aberto" inicial limpa, vale não confia que foi blink.
+    // 0.32 está abaixo do valleyOpenThreshold (0.4*0.88=0.352) mas acima do
+    // closedThreshold clássico (0.28) - state machine clássica também não
+    // dispara. Resultado esperado: 0.
+    const det = createBlinkDetector({ baseline: 0.4 })
+    det.processFrame(0.32, 0.32, 0)
+    det.processFrame(0.3, 0.3, 80)
+    det.processFrame(0.4, 0.4, 160)
+    expect(det.getCount()).toBe(0)
+  })
+
+  it('vale respeita debounce de 500ms', () => {
+    const det = createBlinkDetector({ baseline: 0.4 })
+    det.processFrame(0.4, 0.4, 0)
+    det.processFrame(0.3, 0.3, 80)
+    det.processFrame(0.4, 0.4, 160) // blink 1
+    det.processFrame(0.3, 0.3, 240) // tenta novo, debounce bloqueia
+    det.processFrame(0.4, 0.4, 320)
+    expect(det.getCount()).toBe(1)
+  })
+
+  it('combina state machine clássica e vale sem contar duas vezes (debounce)', () => {
+    const det = createBlinkDetector({ baseline: 0.4 })
+    det.processFrame(0.4, 0.4, 0)
+    det.processFrame(0.15, 0.15, 80) // cruza clássico E vale
+    det.processFrame(0.4, 0.4, 160) // volta aberto, state machine conta
+    expect(det.getCount()).toBe(1)
+  })
+
   it('getThresholds expõe os limiares calculados', () => {
     const semBaseline = createBlinkDetector()
     expect(semBaseline.getThresholds()).toEqual({ closed: 0.2, open: 0.2, baseline: null })
