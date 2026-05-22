@@ -10,5 +10,15 @@ export default defineConfig({
   build: {
     target: 'es2022',
     sourcemap: true,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('@vladmandic/human')) return 'vendor-human'
+          if (id.includes('@tensorflow') || id.includes('tfjs')) return 'vendor-tfjs'
+          if (id.includes('node_modules')) return 'vendor'
+          return undefined
+        },
+      },
+    },
   },
 })

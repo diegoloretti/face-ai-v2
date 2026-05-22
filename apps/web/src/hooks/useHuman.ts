@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
-import { Human, type Config } from '@vladmandic/human'
+import type { Human as HumanInstance, Config } from '@vladmandic/human'
 
-let singletonPromise: Promise<Human> | null = null
+let singletonPromise: Promise<HumanInstance> | null = null
 
 const humanConfig: Partial<Config> = {
   modelBasePath: '/models/',
@@ -26,9 +26,10 @@ const humanConfig: Partial<Config> = {
 
 // Singleton lazy: garante que load+warmup só acontecem uma vez,
 // mesmo que vários componentes chamem useHuman() simultaneamente.
-function getHumanInstance(): Promise<Human> {
+function getHumanInstance(): Promise<HumanInstance> {
   if (singletonPromise) return singletonPromise
   singletonPromise = (async () => {
+    const { Human } = await import('@vladmandic/human')
     const instance = new Human(humanConfig)
     await instance.load()
     await instance.warmup()
@@ -41,11 +42,11 @@ function getHumanInstance(): Promise<Human> {
 }
 
 export function useHuman(enabled: boolean = true): {
-  human: Human | null
+  human: HumanInstance | null
   isLoading: boolean
   error: Error | null
 } {
-  const [human, setHuman] = useState<Human | null>(null)
+  const [human, setHuman] = useState<HumanInstance | null>(null)
   const [error, setError] = useState<Error | null>(null)
 
   useEffect(() => {
