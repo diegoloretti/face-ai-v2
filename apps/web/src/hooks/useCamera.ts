@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 export type CameraStatus = 'idle' | 'requesting' | 'active' | 'error'
 
@@ -6,16 +6,23 @@ export function useCamera(enabled: boolean = true): {
   stream: MediaStream | null
   status: CameraStatus
   error: Error | null
+  retry: () => void
 } {
   const [stream, setStream] = useState<MediaStream | null>(null)
   const [status, setStatus] = useState<CameraStatus>('idle')
   const [error, setError] = useState<Error | null>(null)
+  const [retryNonce, setRetryNonce] = useState(0)
+
+  const retry = useCallback(() => {
+    setRetryNonce((n) => n + 1)
+  }, [])
 
   useEffect(() => {
     if (!enabled) return
     let cancelled = false
     let activeStream: MediaStream | null = null
 
+    setStream(null)
     setStatus('requesting')
     setError(null)
 
@@ -43,7 +50,7 @@ export function useCamera(enabled: boolean = true): {
       cancelled = true
       activeStream?.getTracks().forEach((t) => t.stop())
     }
-  }, [enabled])
+  }, [enabled, retryNonce])
 
-  return { stream, status, error }
+  return { stream, status, error, retry }
 }

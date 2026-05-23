@@ -21,12 +21,7 @@ export function BlinkChallenge({
           <div className="cam-warning-text">Tempo esgotado. Posicione-se novamente.</div>
         </div>
         {onRetry && (
-          <button
-            type="button"
-            className="btn btn-secondary"
-            style={{ height: 36, padding: '0 14px', fontSize: 14 }}
-            onClick={onRetry}
-          >
+          <button type="button" className="btn btn-secondary btn-sm" onClick={onRetry}>
             Tentar de novo
           </button>
         )}

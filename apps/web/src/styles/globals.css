@@ -88,7 +88,7 @@
 
   --fg-1: var(--neutral-900);
   --fg-2: var(--neutral-700);
-  --fg-3: var(--neutral-500);
+  --fg-3: #5a6478;
   --fg-4: var(--neutral-400);
   --fg-on-dark: var(--neutral-0);
   --fg-on-dark-soft: rgba(255, 255, 255, 0.78);
@@ -185,4 +185,15 @@ body {
 ::selection {
   background: var(--bat-cyan-300);
   color: var(--bat-navy-900);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
 }

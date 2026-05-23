@@ -15,12 +15,12 @@ export function CalibratingRing() {
         preserveAspectRatio="none"
       >
         <ellipse
+          className="face-oval-stroke"
           cx="50"
           cy="50"
           rx="49"
           ry="49"
           fill="none"
-          stroke="rgba(0,167,225,0.9)"
           strokeWidth="1.2"
           strokeLinecap="round"
           strokeDasharray="38 220"

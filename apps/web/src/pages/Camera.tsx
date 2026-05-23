@@ -59,7 +59,7 @@ export function Camera({
   const mockOverride = useMemo(() => (env.VITE_USE_MOCK_API ? getMockDecisionOverride() : null), [])
   const realPipelineEnabled = mockOverride === null
 
-  const { stream, error: cameraError } = useCamera(realPipelineEnabled)
+  const { stream, error: cameraError, retry: retryCamera } = useCamera(realPipelineEnabled)
   const { human, error: humanError } = useHuman(realPipelineEnabled)
   const videoRef = useRef<HTMLVideoElement | null>(null)
   const detectorRef = useRef(createBlinkDetector())
@@ -327,12 +327,7 @@ export function Camera({
                 <div className="cam-warning-text">Não conseguimos acessar a câmera</div>
                 <div className="cam-warning-hint">{statusMsg}</div>
               </div>
-              <button
-                type="button"
-                className="btn btn-secondary"
-                style={{ height: 36, padding: '0 14px', fontSize: 14 }}
-                onClick={() => window.location.reload()}
-              >
+              <button type="button" className="btn btn-secondary btn-sm" onClick={retryCamera}>
                 Tentar de novo
               </button>
             </div>
