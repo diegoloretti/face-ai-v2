@@ -43,6 +43,50 @@ const RESOURCE_BYTES_SCRIPT = `
 })()
 `
 
+async function runFlowOnce(page, baseUrl) {
+  const READ_DELAY_MS = 6000
+  const mountTimestamp = Date.now()
+  await page.goto(baseUrl, { waitUntil: 'domcontentloaded' })
+  await page.getByRole('button', { name: /aceitar e continuar/i }).waitFor()
+  await page.waitForTimeout(READ_DELAY_MS)
+  await page.getByRole('button', { name: /aceitar e continuar/i }).click()
+  await page.getByRole('button', { name: /continuar/i }).waitFor()
+  await page.waitForTimeout(READ_DELAY_MS)
+  const tContinue = Date.now()
+  await page.getByRole('button', { name: /continuar/i }).click()
+  await page.locator('.screen-camera').waitFor({ timeout: 15000 })
+
+  const modelsCompletedAt = await page.evaluate(async () => {
+    const deadline = Date.now() + 60000
+    while (Date.now() < deadline) {
+      const models = performance.getEntriesByType('resource')
+        .filter((e) => /\/models\//.test(e.name) && e.responseEnd > 0)
+      if (models.length >= 9) {
+        return { count: models.length, lastEnd: Math.max(...models.map((e) => e.responseEnd)) }
+      }
+      await new Promise((r) => setTimeout(r, 200))
+    }
+    return { count: 0, lastEnd: -1 }
+  })
+
+  const totalKb = await page.evaluate(() => {
+    const entries = performance.getEntriesByType('resource')
+    const all = entries.reduce((s, e) => s + (e.transferSize || e.encodedBodySize || 0), 0)
+    const models = entries
+      .filter((e) => /\/models\//.test(e.name))
+      .reduce((s, e) => s + (e.transferSize || e.encodedBodySize || 0), 0)
+    return { all_kb: Math.round(all / 1024), model_kb: Math.round(models / 1024) }
+  })
+
+  return {
+    mount_to_models_ready_ms: Math.round(modelsCompletedAt.lastEnd),
+    camera_to_models_ready_ms: Math.max(0, Math.round(modelsCompletedAt.lastEnd) - (tContinue - mountTimestamp)),
+    model_files: modelsCompletedAt.count,
+    model_kb: totalKb.model_kb,
+    total_kb: totalKb.all_kb,
+  }
+}
+
 async function applyMobileThrottle(page) {
   const session = await page.context().newCDPSession(page)
   // Slow 4G profile (Chrome DevTools default)
@@ -58,11 +102,14 @@ async function applyMobileThrottle(page) {
 export const scenarios = [
   {
     // Mede Web Vitals com throttle mobile real (Slow 4G + CPU 4x).
-    // total_ms inclui setup + 3s de coleta de Web Vitals - não é o sinal, sinal é o metric.
+    // Usa domcontentloaded em vez de networkidle - o prefetch dispara downloads
+    // dos modelos no mount, então networkidle nunca acontece.
     name: 'mobile-slow4g-cpu4x',
     setup: async (page, ctx) => {
       await applyMobileThrottle(page)
-      await page.goto(ctx.baseUrl, { waitUntil: 'networkidle', timeout: 30000 })
+      await page.goto(ctx.baseUrl, { waitUntil: 'domcontentloaded', timeout: 30000 })
+      // Aguarda o suficiente pra LCP estabilizar mas não tudo terminar de baixar
+      await page.waitForTimeout(4000)
     },
     measure: async (page) => {
       const vitals = await page.evaluate(VITALS_SCRIPT)
@@ -78,43 +125,49 @@ export const scenarios = [
     },
   },
   {
-    // Mede o pipeline real do PDV: consent → instructions → camera + load dos 5 modelos do @vladmandic/human.
-    // Throttle mobile aplicado pra refletir 4G de cliente em loja.
-    name: 'flow-pdv-mobile-models',
-    threshold_ms: 30000,
+    // PDV em mobile + 4G slow, primeira visita (cache vazio).
+    // Simula 6s de leitura em cada tela - sem isso o teste clica em <200ms e
+    // o prefetch não tem tempo de baixar nada.
+    name: 'flow-pdv-mobile-cold',
+    threshold_ms: 60000,
+    setup: async (page) => {
+      await page.context().grantPermissions(['camera'])
+      await applyMobileThrottle(page)
+    },
+    measure: async (page, ctx) => {
+      return runFlowOnce(page, ctx.baseUrl)
+    },
+  },
+  {
+    // PDV em mobile, cliente N+1 da fila (mesmo browser context = cache quente).
+    // Mede o ganho do Cache-Control immutable: modelos vêm do cache, não rede.
+    name: 'flow-pdv-mobile-warm',
+    threshold_ms: 120000,
     setup: async (page, ctx) => {
       await page.context().grantPermissions(['camera'])
       await applyMobileThrottle(page)
-      await page.goto(ctx.baseUrl, { waitUntil: 'domcontentloaded' })
-      await page.getByRole('button', { name: /aceitar e continuar/i }).waitFor()
+      // 1ª visita - aquece o cache do browser
+      await runFlowOnce(page, ctx.baseUrl)
     },
-    measure: async (page) => {
-      const t0 = Date.now()
-      await page.getByRole('button', { name: /aceitar e continuar/i }).click()
-      await page.getByRole('button', { name: /continuar/i }).waitFor()
-      const consentToInstructions = Date.now() - t0
-
-      const t1 = Date.now()
-      await page.getByRole('button', { name: /continuar/i }).click()
-      await page.locator('.screen-camera').waitFor({ timeout: 15000 })
-      const instructionsToCameraRender = Date.now() - t1
-
-      // Espera os modelos do @vladmandic/human terminarem de baixar
-      const t2 = Date.now()
-      await page.waitForLoadState('networkidle', { timeout: 25000 }).catch(() => {})
-      const cameraToModelsReady = Date.now() - t2
-
-      const bytes = await page.evaluate(RESOURCE_BYTES_SCRIPT)
-
-      return {
-        consent_to_instructions_ms: consentToInstructions,
-        instructions_to_camera_ms: instructionsToCameraRender,
-        camera_to_models_ready_ms: cameraToModelsReady,
-        total_to_camera_ready_ms: consentToInstructions + instructionsToCameraRender + cameraToModelsReady,
-        model_files: bytes.models.count,
-        model_kb: Math.round(bytes.models.bytes / 1024),
-        total_kb: Math.round(bytes.all.bytes / 1024),
-      }
+    measure: async (page, ctx) => {
+      // 2ª visita no mesmo context. Reabre a página pra forçar React re-mount
+      // (zera o singleton em memória do useHuman.ts), o que dispara load()
+      // de novo. Se o cache-control immutable funciona, modelos vêm do cache.
+      const first = await runFlowOnce(page, ctx.baseUrl)
+      // Coleta diagnostic: bytes transferidos nessa 2ª passada
+      const cacheInfo = await page.evaluate(() => {
+        const entries = performance.getEntriesByType('resource')
+        const models = entries.filter((e) => /\/models\//.test(e.name))
+        const cacheHits = models.filter((e) => (e.transferSize || 0) === 0).length
+        return {
+          model_entries: models.length,
+          cache_hits: cacheHits,
+          avg_duration_ms: models.length
+            ? Math.round(models.reduce((s, e) => s + e.duration, 0) / models.length)
+            : 0,
+        }
+      })
+      return { ...first, ...cacheInfo }
     },
   },
 ]
