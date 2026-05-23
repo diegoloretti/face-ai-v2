@@ -58,7 +58,6 @@ export function PrivacyPolicy({ onBack }: { onBack: () => void }) {
           </div>
         </div>
       </div>
-      <div className="rainbow-bar" />
     </main>
   )
 }

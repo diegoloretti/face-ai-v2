@@ -12,7 +12,7 @@ export const ERROR_MAP: Record<string, string> = {
   RATE_LIMIT: 'Muitas tentativas. Tente novamente em alguns minutos.',
   INVALID_PAYLOAD: 'Dados inválidos. Recarregue a página.',
   INTERNAL: 'Erro temporário. Tente novamente.',
-  UNKNOWN: 'Algo deu errado. Tente novamente.',
+  UNKNOWN: 'Verifique a câmera e as permissões do navegador.',
 }
 
 export function mapErrorToMessage(err: unknown): string {

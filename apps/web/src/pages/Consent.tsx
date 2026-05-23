@@ -19,7 +19,6 @@ export function Consent({
       <BrandLogo />
       <div className="stage">
         <div className="col col-480">
-          <p className="kicker">Bem-vindo</p>
           <h1 className="h1">Verificação de idade</h1>
           <p className="subtitle">
             Use sua câmera para confirmar que você atende ao requisito de idade.

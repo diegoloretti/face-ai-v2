@@ -15,22 +15,6 @@ export const Icon = {
       <path d="M5 12.5l4.5 4.5L19 7.5" />
     </svg>
   ),
-  confirmation: (props: IconProps) => (
-    <svg viewBox="0 0 24 24" strokeWidth={1.5} {...base} {...props}>
-      <path d="M6 12.5l3.5 3.5L18 8" />
-    </svg>
-  ),
-  neutral: (props: IconProps) => (
-    <svg viewBox="0 0 24 24" strokeWidth={1.75} {...base} {...props}>
-      <path d="M8 12h8" />
-    </svg>
-  ),
-  thanks: (props: IconProps) => (
-    <svg viewBox="0 0 24 24" strokeWidth={1.5} {...base} {...props}>
-      <circle cx="12" cy="12" r="7.5" />
-      <path d="M9 11v-2M15 11v-2M9 14c1 1.2 2 1.8 3 1.8s2-.6 3-1.8" />
-    </svg>
-  ),
   arrowLeft: (props: IconProps) => (
     <svg viewBox="0 0 24 24" strokeWidth={2} {...base} {...props}>
       <path d="M15 6l-6 6 6 6" />

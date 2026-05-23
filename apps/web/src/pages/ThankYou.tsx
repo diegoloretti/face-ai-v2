@@ -1,5 +1,4 @@
 import { BrandLogo } from '../components/BrandLogo'
-import { Icon } from '../components/Icon'
 
 export type ThankYouReason = 'initial_refusal' | 'declaration_refused'
 
@@ -14,10 +13,8 @@ export function ThankYou({ reason }: { reason: ThankYouReason }) {
       <BrandLogo />
       <div className="stage">
         <div className="col col-480" style={{ alignItems: 'center', textAlign: 'center' }}>
-          <div className="thanks-glyph">
-            <Icon.thanks />
-          </div>
-          <h1 className="result-headline tone-denied" style={{ marginBottom: 12 }}>
+          <span className="result-accent result-accent-denied" aria-hidden="true" />
+          <h1 className="result-headline" style={{ marginBottom: 12 }}>
             Obrigado pela visita.
           </h1>
           <p className="result-support" style={{ maxWidth: 360 }}>

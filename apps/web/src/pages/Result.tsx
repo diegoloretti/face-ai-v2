@@ -38,13 +38,13 @@ export function Result({
           </p>
           {motivoPt && <div className="result-reason">{motivoPt}</div>}
           <div className="center-actions actions-pinned">
-            <button type="button" className="btn btn-secondary btn-lg" onClick={onRetry}>
-              <Icon.refresh style={{ width: 16, height: 16 }} aria-hidden="true" />
-              Nova verificação
-            </button>
-            <button type="button" className="btn btn-primary btn-lg" onClick={onRestart}>
+            <button type="button" className="btn btn-secondary btn-lg" onClick={onRestart}>
               <Icon.arrowLeft style={{ width: 16, height: 16 }} aria-hidden="true" />
               Voltar ao início
+            </button>
+            <button type="button" className="btn btn-primary btn-lg" onClick={onRetry}>
+              <Icon.refresh style={{ width: 16, height: 16 }} aria-hidden="true" />
+              Nova verificação
             </button>
           </div>
         </div>

@@ -1,5 +1,3 @@
-import { Icon } from './Icon'
-
 type Decisao = 'aprovado' | 'recusado' | 'requer_declaracao' | 'aprovado_com_declaracao'
 
 const HEADLINE: Record<Decisao, string> = {
@@ -17,15 +15,12 @@ const SUPPORT: Partial<Record<Decisao, string>> = {
 export function ApprovalBanner({ decisao }: { decisao: Decisao }) {
   const isApproved = decisao === 'aprovado' || decisao === 'aprovado_com_declaracao'
   return (
-    <div>
-      <div
-        className={`result-glyph ${isApproved ? 'result-glyph-approved' : 'result-glyph-denied'}`}
-      >
-        {isApproved ? <Icon.confirmation /> : <Icon.neutral />}
-      </div>
-      <h1 className={`result-headline ${isApproved ? 'tone-approved' : 'tone-denied'}`}>
-        {HEADLINE[decisao]}
-      </h1>
+    <div className="result-banner">
+      <span
+        className={`result-accent ${isApproved ? 'result-accent-approved' : 'result-accent-denied'}`}
+        aria-hidden="true"
+      />
+      <h1 className="result-headline">{HEADLINE[decisao]}</h1>
       {SUPPORT[decisao] && <p className="result-support">{SUPPORT[decisao]}</p>}
     </div>
   )
