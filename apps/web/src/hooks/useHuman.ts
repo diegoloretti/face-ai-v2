@@ -41,6 +41,13 @@ function getHumanInstance(): Promise<HumanInstance> {
   return singletonPromise
 }
 
+// Aquece o singleton em background enquanto o usuário ainda está em telas
+// anteriores à câmera. Evita gargalo de ~25s baixando modelos quando entra
+// na tela Camera com conexão lenta.
+export function prefetchHuman(): void {
+  void getHumanInstance().catch(() => {})
+}
+
 export function useHuman(enabled: boolean = true): {
   human: HumanInstance | null
   isLoading: boolean

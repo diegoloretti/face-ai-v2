@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useSession } from './hooks/useSession'
+import { prefetchHuman } from './hooks/useHuman'
 import { Consent } from './pages/Consent'
 import { PrivacyPolicy } from './pages/PrivacyPolicy'
 import { Instructions } from './pages/Instructions'
@@ -9,10 +10,16 @@ import { Result } from './pages/Result'
 import { ThankYou } from './pages/ThankYou'
 import { StatusBadge } from './components/StatusBadge'
 import { verifyDeclaration } from './services/api'
+import { env } from './env'
 
 export function App() {
   const { state, dispatch } = useSession()
   const [confirmingDeclaration, setConfirmingDeclaration] = useState(false)
+
+  useEffect(() => {
+    if (env.VITE_USE_MOCK_API) return
+    prefetchHuman()
+  }, [])
 
   function handleInitialRefusal() {
     dispatch({ type: 'CONSENT_REJECTED' })

@@ -1,0 +1,18 @@
+base_url: https://face-ai-v2.vercel.app
+reports_dir: .claude/test-perf
+scenarios_file: scripts/perf-scenarios.mjs
+
+routes:
+  - name: home
+    path: /
+
+thresholds:
+  lcp_ms: 2500
+  fcp_ms: 1800
+  cls: 0.1
+  tbt_ms: 200
+  ttfb_ms: 800
+  total_requests: 80
+  console_errors: 0
+  page_errors: 0
+  duplicate_api_call: 0

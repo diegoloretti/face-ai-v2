@@ -42,3 +42,6 @@ packages/shared/dist/
 apps/api/models/
 
 .vercel
+
+# Local perf reports + skill workspaces
+.claude/
