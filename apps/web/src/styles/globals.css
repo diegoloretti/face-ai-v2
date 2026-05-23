@@ -49,14 +49,7 @@
   --bat-cyan-200: #c5e8f7;
   --bat-cyan-100: #ebf6fc;
 
-  --bat-rainbow-1: #2669b2;
-  --bat-rainbow-2: #00a7e1;
   --bat-rainbow-3: #ec7c30;
-  --bat-rainbow-4: #f4b91e;
-  --bat-rainbow-5: #2f9b4e;
-  --bat-rainbow-6: #8abc1f;
-  --bat-rainbow-7: #6d3a9c;
-  --bat-rainbow-8: #d13c7a;
 
   --neutral-0: #ffffff;
   --neutral-50: #f7f8fa;
@@ -159,8 +152,6 @@
   --shadow-lg: 0 12px 28px rgba(10, 31, 68, 0.1), 0 2px 4px rgba(10, 31, 68, 0.06);
   --shadow-focus: 0 0 0 3px rgba(0, 167, 225, 0.35);
 
-  --rainbow-bar-height: 18px;
-  --navy-bar-height: 56px;
 }
 
 html {
