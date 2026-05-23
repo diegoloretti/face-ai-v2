@@ -9,12 +9,14 @@ const humanConfig: Partial<Config> = {
   filter: { enabled: false },
   face: {
     enabled: true,
-    detector: { rotation: false, maxDetected: 5 },
+    // O pipeline rejeita >1 rosto - não vale rodar inferência multi-face.
+    detector: { rotation: false, maxDetected: 1 },
     mesh: { enabled: true, modelPath: 'facemesh.json' },
     description: { enabled: true, modelPath: 'faceres.json' },
     antispoof: { enabled: true, modelPath: 'antispoof.json' },
     liveness: { enabled: true, modelPath: 'liveness.json' },
-    iris: { enabled: true, modelPath: 'iris.json' },
+    // iris é ~2.7MB e o EAR usa só contornos do facemesh (leftEyeUpper0 etc).
+    iris: { enabled: false },
     emotion: { enabled: false },
     attention: { enabled: false },
   },
