@@ -228,7 +228,7 @@ Migrations versionadas em [apps/api/migrations/](apps/api/migrations/):
 
 `sessoes` é PK por `id` (UUID gerado pelo cliente). `jwt_jti` é UNIQUE - garante que o JWT não é falsificável nem reusável. `ip_hash` e `user_agent_hash` são SHA-256 - LGPD compliance.
 
-Aplicar migrations: MCP Supabase (`apply_migration` em ordem) ou `supabase db push`.
+Aplicar migrations: `supabase db push` (o `supabase` CLI é o caminho agora - binário em `Personal/bin/supabase.exe`; plugin MCP Supabase desativado em 2026-05-28). Este projeto usa a conta Supabase da BAT (ref `fwtguovxmnbvcjqwmkxd`); CLI precisa estar autenticado/linkado nessa conta.
 
 ---
 

@@ -37,7 +37,7 @@ Esperado: 60 passed + 2 skipped (humanRunner integration gate em Windows ou sem 
 
 ## Migrations
 
-Versionadas em `migrations/` (3 arquivos: init, RLS, indexes). Aplicar via MCP Supabase (`apply_migration` em ordem) ou via CLI quando disponível (`supabase db push`).
+Versionadas em `migrations/` (3 arquivos: init, RLS, indexes). Aplicar via `supabase db push` (o `supabase` CLI agora é o caminho - binário em `Personal/bin/supabase.exe`; o plugin MCP Supabase foi desativado em 2026-05-28). Nota: este projeto usa a conta Supabase da BAT (ref `fwtguovxmnbvcjqwmkxd`), então o CLI precisa estar autenticado/linkado nessa conta.
 
 ## Deploy Fly.io
 

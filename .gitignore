@@ -45,3 +45,6 @@ apps/api/models/
 
 # Local perf reports + skill workspaces
 .claude/
+
+# Handoff artifacts (skill output, personal working doc)
+docs/session-log.md
